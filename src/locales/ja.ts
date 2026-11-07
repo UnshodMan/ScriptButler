@@ -18,6 +18,13 @@ export const ja: Messages = {
   'grid.empty.hint': 'スクリプトファイルをウィンドウにドラッグするか、右上の「スクリプトを追加」をクリックしてください',
   'grid.pickTitle': 'スクリプトを追加',
 
+  'search.placeholder': 'ファイル名・ディレクトリ・内容を検索…',
+  'search.results': '{n} 件の結果',
+  'search.searching': '内容を検索中…',
+  'search.clear': '検索をクリア',
+  'search.empty.title': '「{q}」に一致するスクリプトがありません',
+  'search.empty.hint': '別のキーワードをお試しください。ファイル名、ディレクトリ、内容の順に検索します。',
+
   'card.lastUsed': '最終使用：{time}',
   'card.useCount': '{n} 回使用',
   'card.removeTitle': 'スクリプトを削除',

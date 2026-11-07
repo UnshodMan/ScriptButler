@@ -16,6 +16,13 @@ export const zhCN = {
   'grid.empty.hint': '将脚本文件拖拽到窗口中，或点击右上角「添加脚本」',
   'grid.pickTitle': '添加脚本',
 
+  'search.placeholder': '搜索文件名、目录或内容…',
+  'search.results': '{n} 个结果',
+  'search.searching': '正在搜索内容…',
+  'search.clear': '清除搜索',
+  'search.empty.title': '未找到匹配「{q}」的脚本',
+  'search.empty.hint': '试试其他关键词，搜索会依次匹配文件名、目录和内容。',
+
   'card.lastUsed': '最近使用：{time}',
   'card.useCount': '使用 {n} 次',
   'card.removeTitle': '移除脚本',

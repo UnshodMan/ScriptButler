@@ -18,6 +18,13 @@ export const es: Messages = {
   'grid.empty.hint': 'Arrastra archivos de script a la ventana o haz clic en «Añadir script» arriba a la derecha',
   'grid.pickTitle': 'Añadir script',
 
+  'search.placeholder': 'Buscar nombres, directorios o contenido…',
+  'search.results': '{n} resultados',
+  'search.searching': 'Buscando contenido…',
+  'search.clear': 'Limpiar búsqueda',
+  'search.empty.title': 'No hay scripts que coincidan con «{q}»',
+  'search.empty.hint': 'Prueba otra palabra clave. La búsqueda compara nombres, directorios y contenido en ese orden.',
+
   'card.lastUsed': 'Último uso: {time}',
   'card.useCount': 'Usado {n} veces',
   'card.removeTitle': 'Quitar script',

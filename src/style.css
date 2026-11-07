@@ -273,6 +273,95 @@ input:focus {
   flex: 1;
 }
 
+/* ---------- 搜索框 ---------- */
+
+.grid-search {
+  width: 100%;
+  /* 与下方卡片区域（720px）等宽，含左右各 22px 内边距 */
+  max-width: 764px;
+  padding: 0 22px 12px;
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 6px 0 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.search-field:focus-within {
+  border-color: var(--accent);
+  background: var(--panel-2);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
+}
+
+.search-field .search-icon {
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+
+.search-field:focus-within .search-icon {
+  color: var(--accent-hover);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  font-size: 13.5px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.search-field input:focus {
+  border: none;
+}
+
+.search-field input::placeholder {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.search-field .search-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+  border-radius: 6px;
+}
+
+.search-field .search-clear:hover {
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: transparent;
+}
+
+.search-field .search-status {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .grid-scroll {
   flex: 1;
   overflow-y: auto;

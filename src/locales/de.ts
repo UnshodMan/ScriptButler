@@ -18,6 +18,13 @@ export const de: Messages = {
   'grid.empty.hint': 'Ziehe Skriptdateien ins Fenster oder klicke oben rechts auf „Skript hinzufügen“',
   'grid.pickTitle': 'Skript hinzufügen',
 
+  'search.placeholder': 'Dateiname, Verzeichnis oder Inhalt suchen…',
+  'search.results': '{n} Ergebnisse',
+  'search.searching': 'Inhalt wird durchsucht…',
+  'search.clear': 'Suche löschen',
+  'search.empty.title': 'Keine Skripte gefunden für „{q}“',
+  'search.empty.hint': 'Versuche ein anderes Stichwort. Die Suche prüft Dateinamen, Verzeichnisse und dann Inhalte.',
+
   'card.lastUsed': 'Zuletzt verwendet: {time}',
   'card.useCount': '{n}-mal verwendet',
   'card.removeTitle': 'Skript entfernen',

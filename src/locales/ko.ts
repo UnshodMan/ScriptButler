@@ -18,6 +18,13 @@ export const ko: Messages = {
   'grid.empty.hint': '스크립트 파일을 창으로 드래그하거나 오른쪽 위의 "스크립트 추가"를 클릭하세요',
   'grid.pickTitle': '스크립트 추가',
 
+  'search.placeholder': '파일명, 디렉터리 또는 내용 검색…',
+  'search.results': '결과 {n}개',
+  'search.searching': '내용 검색 중…',
+  'search.clear': '검색 지우기',
+  'search.empty.title': '"{q}"와 일치하는 스크립트가 없습니다',
+  'search.empty.hint': '다른 키워드를 입력해 보세요. 파일명, 디렉터리, 내용 순으로 검색합니다.',
+
   'card.lastUsed': '최근 사용: {time}',
   'card.useCount': '{n}회 사용',
   'card.removeTitle': '스크립트 제거',

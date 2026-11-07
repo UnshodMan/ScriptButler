@@ -18,6 +18,13 @@ export const fr: Messages = {
   'grid.empty.hint': 'Glissez des fichiers de script dans la fenêtre ou cliquez sur « Ajouter un script » en haut à droite',
   'grid.pickTitle': 'Ajouter un script',
 
+  'search.placeholder': 'Rechercher par nom, dossier ou contenu…',
+  'search.results': '{n} résultats',
+  'search.searching': 'Recherche du contenu…',
+  'search.clear': 'Effacer la recherche',
+  'search.empty.title': 'Aucun script ne correspond à « {q} »',
+  'search.empty.hint': 'Essayez un autre mot-clé. La recherche compare les noms, les dossiers puis le contenu.',
+
   'card.lastUsed': 'Dernière utilisation : {time}',
   'card.useCount': 'Utilisé {n} fois',
   'card.removeTitle': 'Retirer le script',

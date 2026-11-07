@@ -18,6 +18,13 @@ export const en: Messages = {
   'grid.empty.hint': 'Drag script files into the window, or click "Add Script" in the top right',
   'grid.pickTitle': 'Add Script',
 
+  'search.placeholder': 'Search filenames, directories, or contents…',
+  'search.results': '{n} results',
+  'search.searching': 'Searching contents…',
+  'search.clear': 'Clear search',
+  'search.empty.title': 'No scripts match "{q}"',
+  'search.empty.hint': 'Try another keyword. Search checks filenames, directories, then contents.',
+
   'card.lastUsed': 'Last used: {time}',
   'card.useCount': 'Used {n} times',
   'card.removeTitle': 'Remove Script',

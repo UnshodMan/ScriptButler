@@ -18,6 +18,13 @@ export const zhTW: Messages = {
   'grid.empty.hint': '將腳本檔案拖曳到視窗中，或點擊右上角「新增腳本」',
   'grid.pickTitle': '新增腳本',
 
+  'search.placeholder': '搜尋檔名、目錄或內容…',
+  'search.results': '{n} 個結果',
+  'search.searching': '正在搜尋內容…',
+  'search.clear': '清除搜尋',
+  'search.empty.title': '找不到符合「{q}」的腳本',
+  'search.empty.hint': '試試其他關鍵字，搜尋會依序比對檔名、目錄與內容。',
+
   'card.lastUsed': '最近使用：{time}',
   'card.useCount': '使用 {n} 次',
   'card.removeTitle': '移除腳本',
