@@ -63,6 +63,17 @@ npm run build       # Frontend type check + bundling (vue-tsc + vite)
 npm run tauri build # Build the desktop installer
 ```
 
+### Version bumping
+
+The app version is mirrored in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. Bump all of them in one step:
+
+```bash
+npm run version:bump -- patch   # 0.1.0 -> 0.1.1
+npm run version:bump -- minor   # 0.1.0 -> 0.2.0
+npm run version:bump -- major   # 0.1.0 -> 1.0.0
+npm run version:bump -- 0.2.3   # set an explicit version
+```
+
 ### Continuous integration
 
 Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflows/build.yml`) builds installers for each platform in parallel on GitHub Actions:
