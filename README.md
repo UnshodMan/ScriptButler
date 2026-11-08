@@ -1,84 +1,86 @@
 # ScriptButler
 
-基于 **Tauri v2 + Vue 3 + TypeScript** 的桌面脚本管理软件。以卡片形式集中管理本地脚本，支持拖拽导入、按最近使用排序、语法高亮编辑，以及可自定义、自动保存的运行命令方案。
+> **提示**：中文版请见 [doc/README.zh-CN.md](doc/README.zh-CN.md)。
 
-## 功能特性
+A desktop script management app built with **Tauri v2 + Vue 3 + TypeScript**. It keeps your local scripts organized as cards and supports drag-and-drop import, sorting by recent use, syntax-highlighted editing, and customizable, auto-saved run command schemes.
 
-- **卡片式主界面**：脚本以卡片单列纵向排列（默认窗口宽度刚好容纳一张卡片），卡片更高更饱满，显示语言标签、文件名、执行目录、最近使用时间与使用次数。
-- **快捷运行**：卡片右侧带有「运行」按钮，一键以当前激活方案运行脚本并进入详情页查看输出；光标悬停在按钮上时显示实际执行的完整命令。
-- **拖拽导入**：将脚本文件直接拖入窗口即可新增卡片（也支持右上角「添加脚本」文件选择器）。重复拖入同一文件会将其置顶而不重复添加。
-- **搜索筛选**：主界面顶部搜索框按「文件名 → 目录 → 内容」的优先级展示结果；名称与目录由 Rust 在已排序条目上实时分组，内容检索在输入停顿后按需扫描（优先调用系统的 ripgrep / grep，不可用时回退为 Rust 侧逐文件读取），无需预先建立索引。
-- **脚本托管**：卡片上的「托管」按钮会将脚本复制到应用数据目录下的 `scripts/`（具体路径由 Tauri 的 `appDataDir` 按平台解析），副本以时间戳命名并保留原扩展名。托管后「托管」按钮图标变为 ❒ 并染橙、不可再点击（悬停提示「已托管」）；卡片只展示实际执行目录，且仅当方案启用「先切换到脚本所在目录再运行」时显示（托管脚本为可配置的执行目录，普通脚本为脚本所在目录）。原脚本名、目录信息与运行方案均被保留，执行目录可在详情页随时更改。
-- **MRU 排序**：卡片默认按「最近使用 → 使用次数 → 名称」综合排序。
-- **语法高亮编辑**：点击卡片进入详情页，基于 CodeMirror 6 提供高亮与关键词补全，按扩展名自动识别语言（Python / JavaScript / TypeScript / Shell / JSON / YAML / Markdown / HTML / CSS 等）。支持编辑并通过「保存」按钮或 `Ctrl/Cmd + S` 写回文件。
-- **自定义运行方案**：详情页顶部提供运行按钮与方案下拉框。每个脚本独立维护一组运行命令方案，支持新建 / 编辑 / 删除；命令模板支持 `{file}` 占位符（缺省时自动在末尾追加脚本路径）。方案内含「先切换到脚本所在目录再运行」开关（默认开启），开启时实际命令形如 `cd '<脚本目录>' && <命令>`，避免脚本依赖当前工作目录时执行出错。方案变更即时自动保存，下次打开可直接下拉选择；首次打开会按语言自动生成默认方案。运行按钮下方会展示当前方案实际执行的完整命令。
-- **运行输出面板**：实时流式展示 stdout / stderr（stderr 高亮为红色）、退出码，支持中途停止与清空。
-- **持久化**：脚本条目与运行方案保存在应用数据目录的 `scripts.json` 中，重启后恢复。
-- **国际化**：内置 9 种界面语言（简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский），默认跟随系统语言自动选择，可在主界面与详情页右上角随时切换，选择会被记住。
+## Features
 
-## 技术栈
+- **Card-based main view**: Scripts are arranged in a single vertical column of cards (the default window width fits exactly one card). The taller, fuller cards show the language tag, file name, execution directory, last used time, and usage count.
+- **Quick run**: Each card has a "Run" button on the right that runs the script with the currently active scheme and opens the detail page to show the output; hovering over the button shows the full command that will be executed.
+- **Drag-and-drop import**: Drag script files straight into the window to add cards (the "Add Script" file picker in the top-right corner works too). Dropping the same file again moves it to the top instead of adding a duplicate.
+- **Search and filtering**: The search box at the top of the main view returns results in priority order: file name → directory → content. Name and directory matches are grouped in real time by Rust over the sorted entries, while content search scans on demand after typing pauses (using the system's ripgrep / grep when available and falling back to reading files one by one in Rust). No index needs to be built in advance.
+- **Script hosting**: The "Host" button on a card copies the script into `scripts/` under the app data directory (the exact path is resolved by Tauri's `appDataDir` per platform). The copy is named with a timestamp and keeps the original extension. After hosting, the button icon becomes ❒ in orange and is no longer clickable (tooltip: "Hosted"). The card then shows only the effective execution directory, and only when the scheme has "Change to the script's directory before running" enabled (hosted scripts use a configurable execution directory, regular scripts use their own directory). The original script name, directory information, and run schemes are preserved, and the execution directory can be changed at any time on the detail page.
+- **MRU sorting**: Cards are sorted by last used → usage count → name by default.
+- **Syntax-highlighted editing**: Click a card to open the detail page, which provides highlighting and keyword completion powered by CodeMirror 6 and detects the language from the file extension (Python / JavaScript / TypeScript / Shell / JSON / YAML / Markdown / HTML / CSS, etc.). Edits can be written back to the file via the "Save" button or `Ctrl/Cmd + S`.
+- **Custom run schemes**: The detail page header offers a run button and a scheme dropdown. Each script maintains its own set of run command schemes with create / edit / delete support; command templates support the `{file}` placeholder (the script path is appended at the end automatically when omitted). Each scheme includes a "Change to the script's directory before running" toggle (on by default); when enabled, the actual command looks like `cd '<script directory>' && <command>`, which avoids failures for scripts that depend on the current working directory. Scheme changes are saved instantly and available from the dropdown the next time the script is opened; a default scheme is generated based on the language on first open. The full command executed by the current scheme is shown below the run button.
+- **Run output panel**: Streams stdout / stderr in real time (stderr highlighted in red) along with the exit code, with support for stopping mid-run and clearing the output.
+- **Persistence**: Script entries and run schemes are stored in `scripts.json` in the app data directory and restored after a restart.
+- **Internationalization**: Ships with 9 UI languages (简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский). The app follows the system language by default, and the language can be switched at any time from the top-right corner of the main and detail pages; the choice is remembered.
 
-| 层    | 技术                                               |
-| ---- | ------------------------------------------------ |
-| 桌面框架 | Tauri v2                                         |
-| 前端   | Vue 3 + TypeScript + Vite + Pinia                |
-| 编辑器  | CodeMirror 6（`one-dark` 主题）                      |
-| 插件   | `tauri-plugin-dialog`                            |
+## Tech stack
 
-> 架构约定：**业务逻辑在 Rust 侧实现**（持久化、MRU 排序、语言识别、命令拼接、脚本托管、内容检索、子进程运行），前端仅通过 Tauri IPC 命令与事件调用能力并渲染界面。
+| Layer             | Technology                        |
+| ----------------- | --------------------------------- |
+| Desktop framework | Tauri v2                          |
+| Frontend          | Vue 3 + TypeScript + Vite + Pinia |
+| Editor            | CodeMirror 6 (`one-dark` theme) |
+| Plugin            | `tauri-plugin-dialog`           |
 
-## 目录结构
+> Architecture convention: **business logic lives on the Rust side** (persistence, MRU sorting, language detection, command assembly, script hosting, content search, and child process execution). The frontend only calls these capabilities through Tauri IPC commands and events and renders the UI.
+
+## Project structure
 
 ```
-src/                  # Vue 前端（仅界面渲染与 IPC 调用）
+src/                  # Vue frontend (UI rendering and IPC calls only)
   lib/                # api / language / runner / editor / toast / time / i18n
-  locales/            # 9 种语言包（zh-CN 为基准，其余语言与其实全一致）
-  stores/scripts.ts   # Pinia store（后端条目列表的薄缓存）
+  locales/            # 9 language packs (zh-CN is the baseline; other languages stay in sync with it)
+  stores/scripts.ts   # Pinia store (thin cache of the backend entry list)
   components/         # CardGrid / ScriptCard / ScriptDetail / RunBar / SchemeDialog / OutputPanel / LangSwitcher
-src-tauri/            # Rust 业务层（IPC 命令 + 持久化 + 运行 + 检索）
-  src/commands.rs     # 所有 IPC 命令
-  src/state.rs        # 条目状态与 scripts.json 读写
-  src/exec.rs         # 执行目录解析与命令拼接
-  src/runner.rs       # 子进程启动、输出事件、停止
-  src/search.rs       # 名称/目录分组与内容检索
-  src/language.rs     # 扩展名 → 语言与默认命令
-  capabilities/       # core / dialog 权限
+src-tauri/            # Rust business layer (IPC commands + persistence + execution + search)
+  src/commands.rs     # All IPC commands
+  src/state.rs        # Entry state and scripts.json read/write
+  src/exec.rs         # Execution directory resolution and command assembly
+  src/runner.rs       # Child process startup, output events, stop
+  src/search.rs       # Name/directory grouping and content search
+  src/language.rs     # Extension → language and default commands
+  capabilities/       # core / dialog permissions
 ```
 
-## 开发
+## Development
 
-前置要求：Node.js、Rust 工具链，以及 Tauri 的系统依赖（Linux 下需 `webkit2gtk-4.1` 等）。
+Prerequisites: Node.js, the Rust toolchain, and Tauri's system dependencies (on Linux, `webkit2gtk-4.1` and others).
 
 ```bash
-npm install        # 安装依赖
-npm run tauri dev  # 启动桌面应用（开发模式）
+npm install        # Install dependencies
+npm run tauri dev  # Start the desktop app (development mode)
 ```
 
-## 构建
+## Build
 
 ```bash
-npm run build      # 前端类型检查 + 打包（vue-tsc + vite）
-npm run tauri build # 构建桌面安装包
+npm run build       # Frontend type check + bundling (vue-tsc + vite)
+npm run tauri build # Build the desktop installer
 ```
 
-### 持续集成
+### Continuous integration
 
-推送 `v*` 标签或手动触发 `Build` workflow（`.github/workflows/build.yml`）会在 GitHub Actions 上并行构建各平台安装包：
+Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflows/build.yml`) builds installers for each platform in parallel on GitHub Actions:
 
-| 平台      | 产物                            |
-| ------- | ----------------------------- |
-| Linux   | `.deb` / `.rpm` / `.AppImage` |
-| Windows | NSIS 安装包（不构建 MSI）               |
-| macOS   | arm64 与 x86_64 的 `.dmg`       |
+| Platform | Artifacts                           |
+| -------- | ----------------------------------- |
+| Linux    | `.deb` / `.rpm` / `.AppImage` |
+| Windows  | NSIS installer (MSI is not built)   |
+| macOS    | `.dmg` for arm64 and x86_64       |
 
-推送标签时产物会附加到对应的草稿 Release，手动触发时可在 Actions 运行的 Artifacts 中下载。Windows 安装向导的界面语言跟随系统语言（支持应用内置的 9 种语言），系统语言不受支持时回退英语。
+When triggered by a tag, the artifacts are attached to the corresponding draft release; when triggered manually, they can be downloaded from the Artifacts of the workflow run. The Windows installer wizard follows the system language (all 9 languages built into the app are supported) and falls back to English when the system language is not supported.
 
-## 数据存储
+## Data storage
 
-脚本条目与运行方案由 Rust 直接读写应用数据目录下的 `scripts.json`（格式为 `{ "entries": [...] }`）：
+Script entries and run schemes are read from and written to `scripts.json` in the app data directory directly by Rust (in the format `{ "entries": [...] }`):
 
 - Linux: `~/.local/share/com.scriptbutler.app/scripts.json`
 - macOS: `~/Library/Application Support/com.scriptbutler.app/scripts.json`
 - Windows: `%APPDATA%/com.scriptbutler.app/scripts.json`
 
-托管脚本副本保存在同一应用数据目录下的 `scripts/` 子目录中，文件名为时间戳 + 原扩展名。
+Hosted script copies are stored in the `scripts/` subdirectory of the same app data directory, with file names made of a timestamp plus the original extension.

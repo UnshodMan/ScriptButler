@@ -38,11 +38,17 @@ pub fn start_run(
         )
     };
 
-    let mut cmd = if cfg!(windows) {
+    #[cfg(windows)]
+    let mut cmd = {
+        use std::os::windows::process::CommandExt;
         let mut c = new_command("cmd");
-        c.arg("/C").arg(&cmdline);
+        // cmd.exe 不按 CRT 规则解析引号，必须原样传入命令行；
+        // 用 /S 配合外层引号，保证内部路径引号不被破坏
+        c.arg("/S").arg("/C").raw_arg(format!("\"{cmdline}\""));
         c
-    } else {
+    };
+    #[cfg(not(windows))]
+    let mut cmd = {
         let mut c = new_command("sh");
         c.arg("-c").arg(&cmdline);
         c
