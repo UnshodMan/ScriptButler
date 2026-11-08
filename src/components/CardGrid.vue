@@ -3,12 +3,12 @@ import { computed, onUnmounted, ref, watch } from 'vue'
 import { open } from '@tauri-apps/plugin-dialog'
 import { IconSearch, IconX } from '@tabler/icons-vue'
 import { useScriptsStore } from '../stores/scripts'
-import { matchDir, matchName, searchContents } from '../lib/search'
+import * as api from '../lib/api'
 import { t } from '../lib/i18n'
 import { toast } from '../lib/toast'
 import ScriptCard from './ScriptCard.vue'
 import LangSwitcher from './LangSwitcher.vue'
-import type { ScriptEntry } from '../types'
+import type { ScriptEntry, SearchGroups } from '../types'
 
 const emit = defineEmits<{ open: [path: string]; run: [path: string] }>()
 
@@ -16,6 +16,7 @@ const store = useScriptsStore()
 
 const query = ref('')
 const keyword = computed(() => query.value.trim().toLowerCase())
+const groups = ref<SearchGroups | null>(null)
 const contentPaths = ref<Set<string>>(new Set())
 const searching = ref(false)
 
@@ -24,35 +25,39 @@ let searchSeq = 0
 
 /** 结果顺序：文件名匹配 → 目录匹配 → 内容匹配，组内保持 MRU 顺序 */
 const results = computed<ScriptEntry[]>(() => {
-  const q = keyword.value
-  if (!q) return store.sorted
-  const byName: ScriptEntry[] = []
-  const byDir: ScriptEntry[] = []
-  const byContent: ScriptEntry[] = []
-  for (const entry of store.sorted) {
-    if (matchName(entry, q)) byName.push(entry)
-    else if (matchDir(entry, q)) byDir.push(entry)
-    else if (contentPaths.value.has(entry.path)) byContent.push(entry)
+  const g = groups.value
+  if (!keyword.value || !g) return store.entries
+  const byPath = new Map(store.entries.map((e) => [e.path, e]))
+  const out: ScriptEntry[] = []
+  const push = (path: string) => {
+    const entry = byPath.get(path)
+    if (entry) out.push(entry)
   }
-  return [...byName, ...byDir, ...byContent]
+  g.byName.forEach(push)
+  g.byDir.forEach(push)
+  for (const path of g.pending) {
+    if (contentPaths.value.has(path)) push(path)
+  }
+  return out
 })
 
-watch(keyword, (q) => {
+watch(keyword, async (q) => {
   searchSeq += 1
   const seq = searchSeq
   window.clearTimeout(searchTimer)
   contentPaths.value = new Set()
+  groups.value = null
 
   if (!q) {
     searching.value = false
     return
   }
 
-  // 已在文件名 / 目录阶段命中的条目无需再搜内容
-  const pending = store.sorted
-    .filter((entry) => !matchName(entry, q) && !matchDir(entry, q))
-    .map((entry) => entry.path)
-  if (!pending.length) {
+  // 文件名与目录匹配由 Rust 在已排序条目上分组返回
+  const found = await api.searchScripts(q)
+  if (seq !== searchSeq) return
+  groups.value = found
+  if (!found.pending.length) {
     searching.value = false
     return
   }
@@ -60,9 +65,9 @@ watch(keyword, (q) => {
   searching.value = true
   // 输入停顿后再检索内容，避免每次按键都拉起外部进程
   searchTimer = window.setTimeout(async () => {
-    const found = await searchContents(pending, q)
+    const paths = await api.searchContents(found.pending, q)
     if (seq !== searchSeq) return
-    contentPaths.value = found
+    contentPaths.value = new Set(paths)
     searching.value = false
   }, 250)
 })
@@ -88,7 +93,7 @@ async function pickFiles() {
   <div class="grid-page">
     <header class="grid-header">
       <h1>ScriptButler</h1>
-      <span class="count">{{ t('grid.count', { n: store.sorted.length }) }}</span>
+      <span class="count">{{ t('grid.count', { n: store.entries.length }) }}</span>
       <div class="spacer"></div>
       <LangSwitcher />
       <button class="primary" @click="pickFiles">+ {{ t('action.addScript') }}</button>

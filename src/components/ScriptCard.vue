@@ -5,7 +5,6 @@ import { IconPlayerPlay, IconCopyCheck, IconCopy, IconX } from '@tabler/icons-vu
 import { useScriptsStore } from '../stores/scripts'
 import { languageLabel } from '../lib/language'
 import { relTime } from '../lib/time'
-import { buildCommand, dirOf } from '../lib/runner'
 import { t } from '../lib/i18n'
 import { toast } from '../lib/toast'
 import type { ScriptEntry } from '../types'
@@ -23,25 +22,16 @@ const activeScheme = computed(
 )
 
 /**
- * 当前方案实际执行目录：仅在启用“先切换到脚本所在目录再运行”时有意义。
- * 托管脚本取其可配置的执行目录（默认原脚本目录），普通脚本取脚本所在目录。
+ * 卡片展示的执行目录：仅在启用“先切换到脚本所在目录再运行”时有意义。
+ * 具体目录由 Rust 解析后随条目下发。
  */
-const execDir = computed(() => {
-  if (!activeScheme.value?.cdToScriptDir) return undefined
-  if (!props.entry.managed) return dirOf(props.entry.path) || undefined
-  return props.entry.workDir || dirOf(props.entry.sourcePath ?? props.entry.path) || undefined
-})
+const execDir = computed(() =>
+  activeScheme.value?.cdToScriptDir ? props.entry.execDir : null,
+)
 
 /** 悬停运行按钮时展示的实际执行命令 */
 const runCommand = computed(() =>
-  activeScheme.value
-    ? buildCommand(
-        activeScheme.value.command,
-        props.entry.path,
-        activeScheme.value.cdToScriptDir,
-        execDir.value,
-      )
-    : t('card.noScheme'),
+  activeScheme.value ? (props.entry.effectiveCommand ?? t('card.noScheme')) : t('card.noScheme'),
 )
 
 const managing = ref(false)

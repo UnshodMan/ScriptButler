@@ -1,11 +1,7 @@
 import { defineStore } from 'pinia'
-import { appDataDir, join } from '@tauri-apps/api/path'
-import { copyFile, mkdir, stat } from '@tauri-apps/plugin-fs'
-import { loadEntries, saveEntries } from '../lib/persist'
-import { detectLang } from '../lib/language'
-import { dirOf } from '../lib/runner'
+import * as api from '../lib/api'
 import { t } from '../lib/i18n'
-import type { RunScheme, ScriptEntry } from '../types'
+import type { ScriptEntry } from '../types'
 
 export interface AddResult {
   ok: boolean
@@ -13,142 +9,71 @@ export interface AddResult {
   entry?: ScriptEntry
 }
 
-function makeDefaultScheme(command: string): RunScheme {
-  return {
-    id: crypto.randomUUID(),
-    name: t('detail.defaultScheme'),
-    command,
-    cdToScriptDir: true,
-  }
-}
-
-/** 托管脚本目录：应用数据目录下的 scripts/，具体路径由 Tauri 按平台解析 */
-async function managedDir(): Promise<string> {
-  const dir = await join(await appDataDir(), 'scripts')
-  await mkdir(dir, { recursive: true })
-  return dir
-}
-
-/** 托管文件名：时间戳 + 原扩展名（保证语言识别仍然有效） */
-function stampFileName(path: string): string {
-  const base = path.split(/[\\/]/).pop() ?? ''
-  const dot = base.lastIndexOf('.')
-  const ext = dot > 0 ? base.slice(dot) : ''
-  return `${Date.now()}${ext}`
-}
-
+/** 后端数据的薄缓存：每步调用 Rust 命令并整体替换已排序的条目列表 */
 export const useScriptsStore = defineStore('scripts', {
   state: () => ({
     entries: [] as ScriptEntry[],
     loaded: false,
   }),
-  getters: {
-    /** MRU 排序：最近使用 → 使用次数 → 名称 */
-    sorted(state): ScriptEntry[] {
-      return [...state.entries].sort(
-        (a, b) =>
-          b.lastUsedAt - a.lastUsedAt || b.useCount - a.useCount || a.name.localeCompare(b.name),
-      )
-    },
-  },
   actions: {
     byPath(path: string): ScriptEntry | undefined {
       return this.entries.find((e) => e.path === path)
     },
     async load() {
-      this.entries = await loadEntries()
+      const res = await api.listScripts()
+      this.entries = res.entries
       this.loaded = true
-    },
-    async persist() {
-      await saveEntries(this.entries)
     },
     async addByPath(path: string): Promise<AddResult> {
       try {
-        const meta = await stat(path)
-        if (!meta.isFile) return { ok: false, message: t('store.notFile') }
-      } catch {
-        return { ok: false, message: t('store.notFound') }
-      }
-      const existing = this.byPath(path)
-      if (existing) {
-        existing.lastUsedAt = Date.now()
-        existing.useCount += 1
-        await this.persist()
-        return { ok: true, entry: existing }
-      }
-      const lang = detectLang(path)
-      const scheme = makeDefaultScheme(lang.defaultCommand)
-      const entry: ScriptEntry = {
-        path,
-        name: path.split(/[\\/]/).pop() ?? path,
-        lang: lang.id,
-        lastUsedAt: Date.now(),
-        useCount: 1,
-        schemes: [scheme],
-        activeSchemeId: scheme.id,
-      }
-      this.entries.push(entry)
-      await this.persist()
-      return { ok: true, entry }
-    },
-    /**
-     * 托管：把脚本复制到应用数据目录下的 scripts/，以时间戳命名。
-     * 新条目保留原脚本名、原始路径与全部运行方案，默认在原目录执行。
-     */
-    async manage(path: string): Promise<AddResult> {
-      const src = this.byPath(path)
-      if (!src) return { ok: false, message: t('store.notFound') }
-      try {
-        const dir = await managedDir()
-        const target = await join(dir, stampFileName(path))
-        await copyFile(path, target)
-        const entry: ScriptEntry = {
-          path: target,
-          name: src.name,
-          lang: src.lang,
-          lastUsedAt: Date.now(),
-          useCount: 0,
-          schemes: src.schemes.map((s) => ({ ...s })),
-          activeSchemeId: src.activeSchemeId,
-          managed: true,
-          sourcePath: path,
-          workDir: dirOf(path),
-        }
-        this.entries.push(entry)
-        await this.persist()
-        return { ok: true, entry }
+        const res = await api.addScript(path, t('detail.defaultScheme'))
+        this.entries = res.entries
+        return { ok: true, entry: res.changed ?? undefined }
       } catch (e) {
-        return { ok: false, message: t('store.manageFailed', { err: String(e) }) }
+        return { ok: false, message: api.errorText(e) }
+      }
+    },
+    async manage(path: string): Promise<AddResult> {
+      try {
+        const res = await api.manageScript(path)
+        this.entries = res.entries
+        return { ok: true, entry: res.changed ?? undefined }
+      } catch (e) {
+        return { ok: false, message: api.errorText(e) }
       }
     },
     /** 托管脚本：修改执行目录（随时可改，立即持久化） */
     async setWorkDir(path: string, workDir: string) {
-      const e = this.byPath(path)
-      if (!e) return
-      e.workDir = workDir
-      await this.persist()
+      this.entries = (await api.setWorkDir(path, workDir)).entries
     },
     async remove(path: string) {
-      const i = this.entries.findIndex((e) => e.path === path)
-      if (i >= 0) {
-        this.entries.splice(i, 1)
-        await this.persist()
-      }
+      this.entries = (await api.removeScript(path)).entries
     },
     async markUsed(path: string) {
-      const e = this.byPath(path)
-      if (!e) return
-      e.lastUsedAt = Date.now()
-      e.useCount += 1
-      await this.persist()
+      this.entries = (await api.markUsed(path)).entries
+    },
+    /** 首次打开且无方案时，按语言生成默认方案 */
+    async ensureDefaultScheme(path: string, name: string) {
+      this.entries = (await api.ensureDefaultScheme(path, name)).entries
     },
     /** 方案变更立即持久化（自动保存） */
-    async saveSchemes(path: string, schemes: RunScheme[], activeSchemeId: string | null) {
-      const e = this.byPath(path)
-      if (!e) return
-      e.schemes = schemes
-      e.activeSchemeId = activeSchemeId
-      await this.persist()
+    async createScheme(path: string, name: string, command: string, cdToScriptDir: boolean) {
+      this.entries = (await api.createScheme(path, name, command, cdToScriptDir)).entries
+    },
+    async updateScheme(
+      path: string,
+      id: string,
+      name: string,
+      command: string,
+      cdToScriptDir: boolean,
+    ) {
+      this.entries = (await api.updateScheme(path, id, name, command, cdToScriptDir)).entries
+    },
+    async deleteScheme(path: string, id: string) {
+      this.entries = (await api.deleteScheme(path, id)).entries
+    },
+    async setActiveScheme(path: string, id: string) {
+      this.entries = (await api.setActiveScheme(path, id)).entries
     },
   },
 })

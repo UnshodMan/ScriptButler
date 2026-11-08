@@ -2,7 +2,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { confirm, open } from '@tauri-apps/plugin-dialog'
 import { useScriptsStore } from '../stores/scripts'
-import { buildCommand, dirOf } from '../lib/runner'
 import { t } from '../lib/i18n'
 import { toast } from '../lib/toast'
 import SchemeDialog from './SchemeDialog.vue'
@@ -35,23 +34,11 @@ let editingId: string | null = null
 const menuOpen = ref(false)
 const root = ref<HTMLElement | null>(null)
 
-/** 实际执行目录：普通脚本为脚本所在目录，托管脚本为可配置的执行目录 */
-const execDir = computed(() => {
-  if (!props.entry.managed) return dirOf(props.entry.path)
-  return props.entry.workDir || dirOf(props.entry.sourcePath ?? props.entry.path)
-})
+/** 实际执行目录：由 Rust 解析后随条目下发 */
+const execDir = computed(() => props.entry.execDir ?? '')
 
 /** 当前方案实际执行的完整命令（含可能的 cd 切换目录） */
-const effectiveCommand = computed(() =>
-  activeScheme.value
-    ? buildCommand(
-        activeScheme.value.command,
-        props.entry.path,
-        activeScheme.value.cdToScriptDir,
-        props.entry.managed ? execDir.value : undefined,
-      )
-    : '',
-)
+const effectiveCommand = computed(() => props.entry.effectiveCommand ?? '')
 
 /** 托管脚本：随时更改执行目录 */
 async function pickDir() {
@@ -73,7 +60,7 @@ function toggleMenu() {
 }
 
 function pickScheme(id: string) {
-  store.saveSchemes(props.entry.path, props.entry.schemes, id)
+  store.setActiveScheme(props.entry.path, id)
   menuOpen.value = false
 }
 
@@ -116,11 +103,9 @@ function openEdit() {
 
 function onDialogSave(data: { name: string; command: string; cdToScriptDir: boolean }) {
   if (editingId) {
-    const schemes = props.entry.schemes.map((s) => (s.id === editingId ? { ...s, ...data } : s))
-    store.saveSchemes(props.entry.path, schemes, editingId)
+    store.updateScheme(props.entry.path, editingId, data.name, data.command, data.cdToScriptDir)
   } else {
-    const scheme: RunScheme = { id: crypto.randomUUID(), ...data }
-    store.saveSchemes(props.entry.path, [...props.entry.schemes, scheme], scheme.id)
+    store.createScheme(props.entry.path, data.name, data.command, data.cdToScriptDir)
   }
   dialogOpen.value = false
 }
@@ -133,8 +118,7 @@ async function removeActive() {
     kind: 'warning',
   })
   if (!ok) return
-  const schemes = props.entry.schemes.filter((s) => s.id !== target.id)
-  store.saveSchemes(props.entry.path, schemes, schemes[0]?.id ?? null)
+  store.deleteScheme(props.entry.path, target.id)
 }
 
 function onRunClick() {

@@ -7,7 +7,7 @@
 - **卡片式主界面**：脚本以卡片单列纵向排列（默认窗口宽度刚好容纳一张卡片），卡片更高更饱满，显示语言标签、文件名、执行目录、最近使用时间与使用次数。
 - **快捷运行**：卡片右侧带有「运行」按钮，一键以当前激活方案运行脚本并进入详情页查看输出；光标悬停在按钮上时显示实际执行的完整命令。
 - **拖拽导入**：将脚本文件直接拖入窗口即可新增卡片（也支持右上角「添加脚本」文件选择器）。重复拖入同一文件会将其置顶而不重复添加。
-- **搜索筛选**：主界面顶部搜索框按「文件名 → 目录 → 内容」的优先级展示结果；名称与目录在内存中实时匹配，内容检索在输入停顿后按需扫描（优先调用系统的 ripgrep / grep，不可用时回退为前端逐文件读取），无需预先建立索引。
+- **搜索筛选**：主界面顶部搜索框按「文件名 → 目录 → 内容」的优先级展示结果；名称与目录由 Rust 在已排序条目上实时分组，内容检索在输入停顿后按需扫描（优先调用系统的 ripgrep / grep，不可用时回退为 Rust 侧逐文件读取），无需预先建立索引。
 - **脚本托管**：卡片上的「托管」按钮会将脚本复制到应用数据目录下的 `scripts/`（具体路径由 Tauri 的 `appDataDir` 按平台解析），副本以时间戳命名并保留原扩展名。托管后「托管」按钮图标变为 ❒ 并染橙、不可再点击（悬停提示「已托管」）；卡片只展示实际执行目录，且仅当方案启用「先切换到脚本所在目录再运行」时显示（托管脚本为可配置的执行目录，普通脚本为脚本所在目录）。原脚本名、目录信息与运行方案均被保留，执行目录可在详情页随时更改。
 - **MRU 排序**：卡片默认按「最近使用 → 使用次数 → 名称」综合排序。
 - **语法高亮编辑**：点击卡片进入详情页，基于 CodeMirror 6 提供高亮与关键词补全，按扩展名自动识别语言（Python / JavaScript / TypeScript / Shell / JSON / YAML / Markdown / HTML / CSS 等）。支持编辑并通过「保存」按钮或 `Ctrl/Cmd + S` 写回文件。
@@ -23,20 +23,26 @@
 | 桌面框架 | Tauri v2                                         |
 | 前端   | Vue 3 + TypeScript + Vite + Pinia                |
 | 编辑器  | CodeMirror 6（`one-dark` 主题）                      |
-| 插件   | `tauri-plugin-fs` / `shell` / `store` / `dialog` |
+| 插件   | `tauri-plugin-dialog`                            |
 
-> 架构约定：**业务逻辑全部在 TypeScript 侧实现**，Rust 层仅注册官方插件，不包含自定义命令。
+> 架构约定：**业务逻辑在 Rust 侧实现**（持久化、MRU 排序、语言识别、命令拼接、脚本托管、内容检索、子进程运行），前端仅通过 Tauri IPC 命令与事件调用能力并渲染界面。
 
 ## 目录结构
 
 ```
-src/                  # Vue 前端（全部业务逻辑）
-  lib/                # persist / language / runner / editor / toast / time / i18n / search
+src/                  # Vue 前端（仅界面渲染与 IPC 调用）
+  lib/                # api / language / runner / editor / toast / time / i18n
   locales/            # 9 种语言包（zh-CN 为基准，其余语言与其实全一致）
-  stores/scripts.ts   # Pinia store（MRU 排序、方案自动保存）
+  stores/scripts.ts   # Pinia store（后端条目列表的薄缓存）
   components/         # CardGrid / ScriptCard / ScriptDetail / RunBar / SchemeDialog / OutputPanel / LangSwitcher
-src-tauri/            # Rust 薄层（仅注册插件 + 权限配置）
-  capabilities/       # fs / store / dialog / shell 权限
+src-tauri/            # Rust 业务层（IPC 命令 + 持久化 + 运行 + 检索）
+  src/commands.rs     # 所有 IPC 命令
+  src/state.rs        # 条目状态与 scripts.json 读写
+  src/exec.rs         # 执行目录解析与命令拼接
+  src/runner.rs       # 子进程启动、输出事件、停止
+  src/search.rs       # 名称/目录分组与内容检索
+  src/language.rs     # 扩展名 → 语言与默认命令
+  capabilities/       # core / dialog 权限
 ```
 
 ## 开发
@@ -69,7 +75,7 @@ npm run tauri build # 构建桌面安装包
 
 ## 数据存储
 
-脚本条目与运行方案持久化于应用数据目录（由 `tauri-plugin-store` 管理）：
+脚本条目与运行方案由 Rust 直接读写应用数据目录下的 `scripts.json`（格式为 `{ "entries": [...] }`）：
 
 - Linux: `~/.local/share/com.scriptbutler.app/scripts.json`
 - macOS: `~/Library/Application Support/com.scriptbutler.app/scripts.json`

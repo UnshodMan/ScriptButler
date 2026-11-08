@@ -25,4 +25,45 @@ export interface ScriptEntry {
   sourcePath?: string
   /** 托管脚本的执行目录，可随时修改；默认取原始脚本所在目录 */
   workDir?: string
+  /** 解析后的执行目录，由 Rust 计算 */
+  execDir: string | null
+  /** 当前激活方案实际执行的完整命令，由 Rust 计算 */
+  effectiveCommand: string | null
+}
+
+/** 列表命令的统一响应：已排序条目 + 本次变更涉及的条目 */
+export interface ScriptList {
+  entries: ScriptEntry[]
+  changed: ScriptEntry | null
+}
+
+/** 搜索分组：文件名命中 → 目录命中 → 待检索内容的条目 */
+export interface SearchGroups {
+  byName: string[]
+  byDir: string[]
+  pending: string[]
+}
+
+export interface RunEvent {
+  type: 'stdout' | 'stderr' | 'exit' | 'error'
+  line?: string
+  code?: number | null
+  message?: string
+}
+
+export interface RunPayload extends RunEvent {
+  runId: string
+}
+
+export type ApiErrorCode =
+  | 'not_found'
+  | 'not_file'
+  | 'manage_failed'
+  | 'read_failed'
+  | 'write_failed'
+  | 'spawn_failed'
+
+export interface ApiError {
+  code: ApiErrorCode
+  detail?: string
 }

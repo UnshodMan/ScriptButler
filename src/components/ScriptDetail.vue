@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs'
 import type { EditorView } from '@codemirror/view'
 import { useScriptsStore } from '../stores/scripts'
+import * as api from '../lib/api'
 import { createEditor } from '../lib/editor'
 import { startRun, stopRun, subscribe } from '../lib/runner'
-import { detectLang } from '../lib/language'
 import { t } from '../lib/i18n'
 import { toast } from '../lib/toast'
 import RunBar from './RunBar.vue'
@@ -30,26 +29,21 @@ async function save() {
   if (!view) return
   const content = view.state.doc.toString()
   try {
-    await writeTextFile(props.path, content)
+    await api.writeScript(props.path, content)
     savedContent.value = content
     dirty.value = false
     toast(t('detail.saved'))
   } catch (e) {
-    toast(t('detail.saveFailed', { err: String(e) }), 'error')
+    toast(api.errorText(e), 'error')
   }
 }
 
 async function run(scheme: RunScheme) {
   await store.markUsed(props.path)
   try {
-    runId.value = await startRun(
-      props.path,
-      scheme.command,
-      scheme.cdToScriptDir,
-      entry.value?.workDir,
-    )
+    runId.value = await startRun(props.path, scheme.id)
   } catch (e) {
-    toast(t('detail.startFailed', { err: String(e) }), 'error')
+    toast(api.errorText(e), 'error')
   }
 }
 
@@ -71,23 +65,13 @@ watch(runId, (id) => {
 onMounted(async () => {
   await store.markUsed(props.path)
 
-  // 首次打开且无方案时，按语言生成默认方案（addByPath 已生成，这里是兜底）
-  const e = store.byPath(props.path)
-  if (e && e.schemes.length === 0) {
-    const lang = detectLang(props.path)
-    const scheme: RunScheme = {
-      id: crypto.randomUUID(),
-      name: t('detail.defaultScheme'),
-      command: lang.defaultCommand,
-      cdToScriptDir: true,
-    }
-    await store.saveSchemes(props.path, [scheme], scheme.id)
-  }
+  // 首次打开且无方案时，按语言生成默认方案（由 Rust 兜底）
+  await store.ensureDefaultScheme(props.path, t('detail.defaultScheme'))
 
   try {
-    savedContent.value = await readTextFile(props.path)
+    savedContent.value = await api.readScript(props.path)
   } catch (err) {
-    loadError.value = t('detail.readFailed', { err: String(err) })
+    loadError.value = api.errorText(err)
     return
   }
 
