@@ -8,6 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "build:cli": "node scripts/build-cli.mjs",
     "version:bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {

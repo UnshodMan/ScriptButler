@@ -1,9 +1,17 @@
+[workspace]
+members = ["core", "cli"]
+default-members = ["."]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
 [package]
 name = "ScriptButler"
-version = "0.1.0"
+version.workspace = true
 description = "Script Butler"
 authors = ["UnshodMan"]
-edition = "2024"
+edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -23,7 +31,7 @@ tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1", features = ["v4"] }
-
+scriptbutler-core = { path = "core" }
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

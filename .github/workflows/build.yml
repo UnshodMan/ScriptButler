@@ -72,6 +72,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Build CLI sidecar
+        run: node scripts/build-cli.mjs ${{ matrix.rust-targets }}
+
       - name: Build bundles
         uses: tauri-apps/tauri-action@v1
         env:

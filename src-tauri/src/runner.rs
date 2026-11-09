@@ -5,7 +5,8 @@ use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::exec::{build_command, entry_exec_dir, new_command};
+use scriptbutler_core::exec::{build_run_command, shell_command};
+
 use crate::models::{ApiError, RunEvent, RunPayload};
 use crate::state::AppState;
 
@@ -19,7 +20,7 @@ pub fn start_run(
     scheme_id: &str,
 ) -> Result<String, ApiError> {
     let cmdline = {
-        let entries = state.entries.lock().unwrap();
+        let entries = state.lock_entries();
         let entry = entries
             .iter()
             .find(|e| e.path == path)
@@ -29,30 +30,10 @@ pub fn start_run(
             .iter()
             .find(|s| s.id == scheme_id)
             .ok_or(ApiError::NotFound)?;
-        let exec_dir = entry_exec_dir(entry);
-        build_command(
-            &scheme.command,
-            &entry.path,
-            scheme.cd_to_script_dir,
-            exec_dir.as_deref(),
-        )
+        build_run_command(entry, scheme)
     };
 
-    #[cfg(windows)]
-    let mut cmd = {
-        use std::os::windows::process::CommandExt;
-        let mut c = new_command("cmd");
-        // cmd.exe 不按 CRT 规则解析引号，必须原样传入命令行；
-        // 用 /S 配合外层引号，保证内部路径引号不被破坏
-        c.arg("/S").arg("/C").raw_arg(format!("\"{cmdline}\""));
-        c
-    };
-    #[cfg(not(windows))]
-    let mut cmd = {
-        let mut c = new_command("sh");
-        c.arg("-c").arg(&cmdline);
-        c
-    };
+    let mut cmd = shell_command(&cmdline);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

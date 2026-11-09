@@ -1,58 +1,26 @@
 use tauri::{AppHandle, State};
 use uuid::Uuid;
 
-use crate::exec::{dir_of, to_view};
-use crate::language;
+use scriptbutler_core::exec::to_view;
+use scriptbutler_core::language;
+use scriptbutler_core::ops::{self, ManageOptions};
+use scriptbutler_core::search;
+
 use crate::models::{
-    ApiError, EntryView, ListResponse, RunScheme, ScriptEntry, SearchGroups,
+    ApiError, ListResponse, RunScheme, SearchGroups,
 };
 use crate::runner;
-use crate::search;
 use crate::state::AppState;
-use crate::unix_ms;
 
 fn new_id() -> String {
     Uuid::new_v4().to_string()
 }
 
-fn file_name(path: &str) -> String {
-    path.rsplit(|c| c == '/' || c == '\\')
-        .next()
-        .unwrap_or(path)
-        .to_string()
-}
-
-/// 托管文件名：时间戳 + 原扩展名（保证语言识别仍然有效）
-fn stamp_file_name(path: &str) -> String {
-    let base = file_name(path);
-    let ext = match base.rfind('.') {
-        Some(dot) if dot > 0 => &base[dot..],
-        _ => "",
-    };
-    format!("{}{ext}", unix_ms())
-}
-
-/// MRU 排序：最近使用 → 使用次数 → 名称
-fn sorted_refs(entries: &[ScriptEntry]) -> Vec<&ScriptEntry> {
-    let mut list: Vec<&ScriptEntry> = entries.iter().collect();
-    list.sort_by(|a, b| {
-        b.last_used_at
-            .cmp(&a.last_used_at)
-            .then_with(|| b.use_count.cmp(&a.use_count))
-            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
-    });
-    list
-}
-
-fn sorted_views(entries: &[ScriptEntry]) -> Vec<EntryView> {
-    sorted_refs(entries).into_iter().map(to_view).collect()
-}
-
 #[tauri::command]
 pub fn list_scripts(state: State<AppState>) -> ListResponse {
-    let entries = state.entries.lock().unwrap();
+    let entries = state.lock_entries();
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed: None,
     }
 }
@@ -63,44 +31,12 @@ pub fn add_script(
     path: String,
     default_scheme_name: String,
 ) -> Result<ListResponse, ApiError> {
-    let meta = std::fs::metadata(&path).map_err(|_| ApiError::NotFound)?;
-    if !meta.is_file() {
-        return Err(ApiError::NotFile);
-    }
-
-    let mut entries = state.entries.lock().unwrap();
-    let changed = if let Some(existing) = entries.iter_mut().find(|e| e.path == path) {
-        existing.last_used_at = unix_ms();
-        existing.use_count += 1;
-        Some(to_view(existing))
-    } else {
-        let lang = language::detect(&path);
-        let scheme = RunScheme {
-            id: new_id(),
-            name: default_scheme_name,
-            command: lang.default_command.to_string(),
-            cd_to_script_dir: true,
-        };
-        let entry = ScriptEntry {
-            path: path.clone(),
-            name: file_name(&path),
-            lang: lang.id.to_string(),
-            last_used_at: unix_ms(),
-            use_count: 1,
-            schemes: vec![scheme.clone()],
-            active_scheme_id: Some(scheme.id),
-            managed: None,
-            source_path: None,
-            work_dir: None,
-        };
-        entries.push(entry);
-        entries.last().map(to_view)
-    };
-
+    let mut entries = state.lock_entries();
+    let outcome = ops::add_entry(&mut entries, &path, &default_scheme_name)?;
     state.save_entries(&entries);
     Ok(ListResponse {
-        entries: sorted_views(&entries),
-        changed,
+        entries: ops::sorted_views(&entries),
+        changed: Some(outcome.view),
     })
 }
 
@@ -108,56 +44,34 @@ pub fn add_script(
 /// 新条目保留原脚本名、原始路径与全部运行方案，默认在原目录执行。
 #[tauri::command]
 pub fn manage_script(state: State<AppState>, path: String) -> Result<ListResponse, ApiError> {
-    let src = {
-        let entries = state.entries.lock().unwrap();
-        entries
-            .iter()
-            .find(|e| e.path == path)
-            .cloned()
-            .ok_or(ApiError::NotFound)?
-    };
-
-    std::fs::create_dir_all(&state.managed_dir).map_err(|e| ApiError::ManageFailed {
-        detail: e.to_string(),
-    })?;
-    let target = state.managed_dir.join(stamp_file_name(&path));
-    std::fs::copy(&path, &target).map_err(|e| ApiError::ManageFailed {
-        detail: e.to_string(),
-    })?;
-
-    let entry = ScriptEntry {
-        path: target.to_string_lossy().to_string(),
-        name: src.name,
-        lang: src.lang,
-        last_used_at: unix_ms(),
-        use_count: 0,
-        schemes: src.schemes,
-        active_scheme_id: src.active_scheme_id,
-        managed: Some(true),
-        source_path: Some(path.clone()),
-        work_dir: dir_of(&path),
-    };
-
-    let mut entries = state.entries.lock().unwrap();
-    entries.push(entry);
-    let changed = entries.last().map(to_view);
+    let mut entries = state.lock_entries();
+    let outcome = ops::manage_script(
+        &mut entries,
+        &path,
+        &state.managed_dir,
+        &ManageOptions {
+            scheme_name: "Default",
+            name: None,
+            command: None,
+            work_dir: None,
+            dedupe: false,
+        },
+    )?;
     state.save_entries(&entries);
     Ok(ListResponse {
-        entries: sorted_views(&entries),
-        changed,
+        entries: ops::sorted_views(&entries),
+        changed: Some(outcome.view),
     })
 }
 
 #[tauri::command]
 pub fn remove_script(state: State<AppState>, path: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
-    let before = entries.len();
-    entries.retain(|e| e.path != path);
-    if entries.len() != before {
+    let mut entries = state.lock_entries();
+    if ops::remove_entry(&mut entries, &path) {
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed: None,
     }
 }
@@ -165,10 +79,9 @@ pub fn remove_script(state: State<AppState>, path: String) -> ListResponse {
 /// 托管脚本：修改执行目录（随时可改，立即持久化）
 #[tauri::command]
 pub fn set_work_dir(state: State<AppState>, path: String, work_dir: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        entry.work_dir = Some(work_dir);
-        Some(to_view(entry))
+    let mut entries = state.lock_entries();
+    let changed = if ops::set_work_dir(&mut entries, &path, &work_dir) {
+        entries.iter().find(|e| e.path == path).map(to_view)
     } else {
         None
     };
@@ -176,18 +89,16 @@ pub fn set_work_dir(state: State<AppState>, path: String, work_dir: String) -> L
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
 
 #[tauri::command]
 pub fn mark_used(state: State<AppState>, path: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        entry.last_used_at = unix_ms();
-        entry.use_count += 1;
-        Some(to_view(entry))
+    let mut entries = state.lock_entries();
+    let changed = if ops::mark_used(&mut entries, &path) {
+        entries.iter().find(|e| e.path == path).map(to_view)
     } else {
         None
     };
@@ -195,7 +106,7 @@ pub fn mark_used(state: State<AppState>, path: String) -> ListResponse {
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
@@ -203,7 +114,7 @@ pub fn mark_used(state: State<AppState>, path: String) -> ListResponse {
 /// 首次打开且无方案时，按语言生成默认方案
 #[tauri::command]
 pub fn ensure_default_scheme(state: State<AppState>, path: String, name: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
+    let mut entries = state.lock_entries();
     let mut dirty = false;
     let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
         if entry.schemes.is_empty() {
@@ -226,7 +137,7 @@ pub fn ensure_default_scheme(state: State<AppState>, path: String, name: String)
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
@@ -239,7 +150,7 @@ pub fn create_scheme(
     command: String,
     cd_to_script_dir: bool,
 ) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
+    let mut entries = state.lock_entries();
     let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
         let scheme = RunScheme {
             id: new_id(),
@@ -257,7 +168,7 @@ pub fn create_scheme(
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
@@ -271,7 +182,7 @@ pub fn update_scheme(
     command: String,
     cd_to_script_dir: bool,
 ) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
+    let mut entries = state.lock_entries();
     let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
         if let Some(scheme) = entry.schemes.iter_mut().find(|s| s.id == id) {
             scheme.name = name;
@@ -287,14 +198,14 @@ pub fn update_scheme(
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
 
 #[tauri::command]
 pub fn delete_scheme(state: State<AppState>, path: String, id: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
+    let mut entries = state.lock_entries();
     let mut dirty = false;
     let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
         let before = entry.schemes.len();
@@ -318,14 +229,14 @@ pub fn delete_scheme(state: State<AppState>, path: String, id: String) -> ListRe
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
 
 #[tauri::command]
 pub fn set_active_scheme(state: State<AppState>, path: String, id: String) -> ListResponse {
-    let mut entries = state.entries.lock().unwrap();
+    let mut entries = state.lock_entries();
     let mut dirty = false;
     let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
         if entry.schemes.iter().any(|s| s.id == id) {
@@ -340,7 +251,7 @@ pub fn set_active_scheme(state: State<AppState>, path: String, id: String) -> Li
         state.save_entries(&entries);
     }
     ListResponse {
-        entries: sorted_views(&entries),
+        entries: ops::sorted_views(&entries),
         changed,
     }
 }
@@ -376,8 +287,8 @@ pub fn stop_run(state: State<AppState>, run_id: String) {
 
 #[tauri::command]
 pub fn search_scripts(state: State<AppState>, query: String) -> SearchGroups {
-    let entries = state.entries.lock().unwrap();
-    let sorted = sorted_refs(&entries);
+    let entries = state.lock_entries();
+    let sorted = ops::sorted_refs(&entries);
     search::group(&sorted, &query)
 }
 

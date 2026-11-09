@@ -1,20 +1,11 @@
 mod commands;
-mod exec;
-mod language;
 mod models;
 mod runner;
-mod search;
 mod state;
 
 use tauri::Manager;
 
-/// 当前时间（Unix 毫秒）
-pub fn unix_ms() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
-}
+pub use scriptbutler_core::unix_ms;
 
 // Rust 业务层：持久化、排序、语言识别、命令拼接、脚本托管、检索与运行。
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

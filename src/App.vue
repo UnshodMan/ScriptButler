@@ -22,6 +22,7 @@ function runCard(path: string) {
 }
 
 let unlistenDrop: (() => void) | null = null
+let unlistenFocus: (() => void) | null = null
 const prevent = (e: DragEvent) => e.preventDefault()
 
 onMounted(async () => {
@@ -39,12 +40,18 @@ onMounted(async () => {
       if (!r.ok && r.message) toast(r.message, 'error')
     }
   })
+
+  // 窗口重新获得焦点时重载，感知 CLI 等外部进程对 scripts.json 的修改
+  unlistenFocus = await getCurrentWindow().onFocusChanged(({ payload }) => {
+    if (payload && store.loaded) void store.load()
+  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('dragover', prevent)
   window.removeEventListener('drop', prevent)
   unlistenDrop?.()
+  unlistenFocus?.()
 })
 </script>
 

@@ -17,6 +17,7 @@ A desktop script management app built with **Tauri v2 + Vue 3 + TypeScript**. It
 - **Run output panel**: Streams stdout / stderr in real time (stderr highlighted in red) along with the exit code, with support for stopping mid-run and clearing the output.
 - **Persistence**: Script entries and run schemes are stored in `scripts.json` in the app data directory and restored after a restart.
 - **Internationalization**: Ships with 9 UI languages (简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский). The app follows the system language by default, and the language can be switched at any time from the top-right corner of the main and detail pages; the choice is remembered.
+- **Agent integration**: Ships the `sbctl` CLI with the desktop app. Agents and terminals can add, manage, list, search, run, and remove scripts with stable `--json` output, and `sbctl skill --install <dir>` installs a ready-to-use Agent Skill. See [Agent integration](#agent-integration-cli--skill).
 
 ## Tech stack
 
@@ -26,8 +27,9 @@ A desktop script management app built with **Tauri v2 + Vue 3 + TypeScript**. It
 | Frontend          | Vue 3 + TypeScript + Vite + Pinia |
 | Editor            | CodeMirror 6 (`one-dark` theme) |
 | Plugin            | `tauri-plugin-dialog`           |
+| CLI               | Rust (`scriptbutler-core` + `clap`) |
 
-> Architecture convention: **business logic lives on the Rust side** (persistence, MRU sorting, language detection, command assembly, script hosting, content search, and child process execution). The frontend only calls these capabilities through Tauri IPC commands and events and renders the UI.
+> Architecture convention: **business logic lives in the shared Rust core crate** (`src-tauri/core`), used by both the desktop app and the `sbctl` CLI. The frontend only calls these capabilities through Tauri IPC commands and events and renders the UI.
 
 ## Project structure
 
@@ -37,14 +39,16 @@ src/                  # Vue frontend (UI rendering and IPC calls only)
   locales/            # 9 language packs (zh-CN is the baseline; other languages stay in sync with it)
   stores/scripts.ts   # Pinia store (thin cache of the backend entry list)
   components/         # CardGrid / ScriptCard / ScriptDetail / RunBar / SchemeDialog / OutputPanel / LangSwitcher
-src-tauri/            # Rust business layer (IPC commands + persistence + execution + search)
-  src/commands.rs     # All IPC commands
-  src/state.rs        # Entry state and scripts.json read/write
-  src/exec.rs         # Execution directory resolution and command assembly
+src-tauri/            # Tauri desktop app (IPC commands + child process events)
+  src/commands.rs     # Thin IPC command wrappers over the shared core
+  src/state.rs        # In-memory entries + scripts.json reload/save
   src/runner.rs       # Child process startup, output events, stop
-  src/search.rs       # Name/directory grouping and content search
-  src/language.rs     # Extension → language and default commands
+  core/               # scriptbutler-core: models / store / ops / exec / search / language
+  cli/                # scriptbutler-cli: sbctl command-line interface
+  nsis/               # Windows installer template with the sbctl PATH option
   capabilities/       # core / dialog permissions
+skills/               # Agent Skill (scriptbutler/SKILL.md)
+scripts/              # build-cli.mjs / bump-version.mjs
 ```
 
 ## Development
@@ -52,20 +56,24 @@ src-tauri/            # Rust business layer (IPC commands + persistence + execut
 Prerequisites: Node.js, the Rust toolchain, and Tauri's system dependencies (on Linux, `webkit2gtk-4.1` and others).
 
 ```bash
-npm install        # Install dependencies
-npm run tauri dev  # Start the desktop app (development mode)
+npm install         # Install dependencies
+npm run build:cli   # Build the sbctl sidecar (also runs automatically before tauri dev/build)
+npm run tauri dev   # Start the desktop app (development mode)
 ```
 
 ## Build
 
 ```bash
-npm run build       # Frontend type check + bundling (vue-tsc + vite)
-npm run tauri build # Build the desktop installer
+npm run build        # Frontend type check + bundling (vue-tsc + vite)
+npm run build:cli    # Build the sbctl sidecar only
+npm run tauri build  # Build the desktop installer (bundles sbctl)
 ```
+
+The bundler picks up `src-tauri/binaries/sbctl-<target-triple>` through `bundle.externalBin`. The `beforeBuildCommand` builds it for the target triple that Tauri is using (`TAURI_ENV_TARGET_TRIPLE`), and CI pre-builds it for each matrix target.
 
 ### Version bumping
 
-The app version is mirrored in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. Bump all of them in one step:
+The app version is mirrored in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. The workspace version in `[workspace.package]` is inherited by `scriptbutler-core` and `scriptbutler-cli`; the script updates it and all three lockfile entries. Bump everything in one step:
 
 ```bash
 npm run version:bump -- patch   # 0.1.0 -> 0.1.1
@@ -86,9 +94,74 @@ Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflo
 
 When triggered by a tag, the artifacts are attached to the corresponding draft release; when triggered manually, they can be downloaded from the Artifacts of the workflow run. The Windows installer wizard follows the system language (all 9 languages built into the app are supported) and falls back to English when the system language is not supported.
 
+## Agent integration (CLI + Skill)
+
+The installer ships `sbctl`, a Rust CLI that operates on the same `scripts.json` as the desktop app. It works whether or not the app is running.
+
+### Binary location and PATH
+
+| Platform | Binary location | PATH |
+| --- | --- | --- |
+| Linux (deb/rpm) | `/usr/bin/sbctl` | Added automatically |
+| Windows (NSIS) | `<install dir>\sbctl.exe` | Check "Add sbctl to PATH" in the installer, or run `sbctl env add` |
+| macOS (dmg) | `ScriptButler.app/Contents/MacOS/sbctl` | Run `/Applications/ScriptButler.app/Contents/MacOS/sbctl env add`; add `~/.local/bin` to PATH if prompted |
+| Linux (AppImage) | Inside the AppImage | Not exposed; use the deb/rpm package |
+
+`sbctl env add` on Windows adds the executable directory to the current user's PATH (use `--system` for the machine PATH). On macOS/Linux it creates `~/.local/bin/sbctl` unless the directory is already on PATH. `sbctl env remove` undoes it.
+
+### Commands
+
+| Command | Description |
+| --- | --- |
+| `sbctl add <path> [--name N] [--command TPL] [--scheme-name N] [--json]` | Register a script in place; re-adding only updates MRU |
+| `sbctl manage <path> [--name N] [--workdir DIR] [--command TPL] [--scheme-name N] [--json]` | Copy a script into the managed directory; works for registered and unregistered files |
+| `sbctl remove <name\|path> [--json]` | Remove an entry; never deletes files |
+| `sbctl list [--query KW] [--json]` | List entries in MRU order |
+| `sbctl show <name\|path> [--json]` | Show an entry, its schemes, and the effective command |
+| `sbctl search <keyword> [--content] [--json]` | Search names, directories, and optionally contents |
+| `sbctl run <name\|path> [--scheme ID\|NAME] [--json]` | Run the active or selected scheme |
+| `sbctl path [--json]` | Print the data directory, store path, managed directory, and executable |
+| `sbctl env add\|remove\|status [--system] [--json]` | Manage PATH |
+| `sbctl skill [--install <skills-root>]` | Print or install the Agent Skill |
+
+`<name|path>` resolves by absolute path, then by the managed script's source path, then by case-insensitive file name. Duplicate names return an `ambiguous` error with the candidate paths.
+
+### JSON output and exit codes
+
+Pass `--json` for machine-readable output:
+
+```json
+{ "ok": true, "data": [ ... ] }
+{ "ok": false, "error": { "code": "not_found", "message": "..." } }
+```
+
+`add`/`manage` also return `created` and `copiedTo`; `run` returns `{ exitCode, stdout, stderr }`.
+
+| Exit code | Meaning |
+| --- | --- |
+| 0 | success |
+| 1 | runtime error (I/O, spawn, manage) |
+| 2 | not found, ambiguous reference, or usage error |
+| 3 | invalid `scripts.json` |
+| script code | `sbctl run` returns the script's exit code |
+
+### Agent Skill
+
+The repository contains `skills/scriptbutler/SKILL.md`. Install it into your agent's skills directory with:
+
+```bash
+sbctl skill --install ~/.claude/skills   # use your agent's skills root
+```
+
+`sbctl skill` prints the same document to stdout.
+
+### Data synchronization
+
+The CLI reads and writes the same `scripts.json` as the app. The app reloads the file before each command when it changed on disk and refreshes the card list when the window regains focus. If both processes write at the same time, the last writer wins.
+
 ## Data storage
 
-Script entries and run schemes are read from and written to `scripts.json` in the app data directory directly by Rust (in the format `{ "entries": [...] }`):
+Script entries and run schemes are read from and written to `scripts.json` in the app data directory by the shared Rust core (in the format `{ "entries": [...] }`). The `sbctl` CLI uses the same path; set `SCRIPTBUTLER_DATA_DIR` to override the CLI data directory (useful for tests):
 
 - Linux: `~/.local/share/com.scriptbutler.app/scripts.json`
 - macOS: `~/Library/Application Support/com.scriptbutler.app/scripts.json`

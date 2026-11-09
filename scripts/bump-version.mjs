@@ -64,23 +64,24 @@ const tauri = JSON.parse(readFileSync(paths.tauri, "utf8"));
 tauri.version = next;
 
 const cargo = readFileSync(paths.cargo, "utf8");
-const crateName = /\[package\][\s\S]*?\nname\s*=\s*"([^"]+)"/.exec(cargo)?.[1];
-if (!crateName) fail("Cannot locate [package] name in src-tauri/Cargo.toml");
 
 const cargoNext = replaceOnce(
   cargo,
-  /(\[package\](?:[\s\S]*?\n)version\s*=\s*")[^"]+(")/,
+  /(\[workspace\.package\](?:[\s\S]*?\n)version\s*=\s*")[^"]+(")/,
   `$1${next}$2`,
-  "[package] version in src-tauri/Cargo.toml",
+  "[workspace.package] version in src-tauri/Cargo.toml",
 );
 
-const escapedName = crateName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const cargoLockNext = replaceOnce(
-  readFileSync(paths.cargoLock, "utf8"),
-  new RegExp(`(\\[\\[package\\]\\]\\nname = "${escapedName}"\\nversion = ")[^"]+(")`),
-  `$1${next}$2`,
-  `version of "${crateName}" in src-tauri/Cargo.lock`,
-);
+let cargoLockNext = readFileSync(paths.cargoLock, "utf8");
+for (const crateName of ["ScriptButler", "scriptbutler-core", "scriptbutler-cli"]) {
+  const escapedName = crateName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  cargoLockNext = replaceOnce(
+    cargoLockNext,
+    new RegExp(`(\\[\\[package\\]\\]\\nname = "${escapedName}"\\nversion = ")[^"]+(")`),
+    `$1${next}$2`,
+    `version of "${crateName}" in src-tauri/Cargo.lock`,
+  );
+}
 
 writeFileSync(paths.pkg, JSON.stringify(pkg, null, 2) + "\n");
 writeFileSync(paths.pkgLock, JSON.stringify(pkgLock, null, 2) + "\n");
