@@ -1,5 +1,5 @@
 ---
-name: scriptbutler
+name: script-butler
 description: "Manage and run local scripts in ScriptButler via the sbctl CLI. Invoke when the user asks to add, host/manage, list, search, run, or remove scripts with ScriptButler."
 ---
 
@@ -70,4 +70,4 @@ If the data file is invalid, do not overwrite it; report the problem to the user
 
 ## Install this skill
 
-`sbctl skill` prints this document. `sbctl skill --install <agent-skills-root>` writes `<agent-skills-root>/scriptbutler/SKILL.md`.
+`sbctl skill` prints this document. `sbctl skill --install <agent-skills-root>` writes `<agent-skills-root>/script-butler/SKILL.md`.

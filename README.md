@@ -47,7 +47,7 @@ src-tauri/            # Tauri desktop app (IPC commands + child process events)
   cli/                # scriptbutler-cli: sbctl command-line interface
   nsis/               # Windows installer template with the sbctl PATH option
   capabilities/       # core / dialog permissions
-skills/               # Agent Skill (scriptbutler/SKILL.md)
+skills/               # Agent Skill (script-butler/SKILL.md)
 scripts/              # build-cli.mjs / bump-version.mjs
 ```
 
@@ -147,7 +147,7 @@ Pass `--json` for machine-readable output:
 
 ### Agent Skill
 
-The repository contains `skills/scriptbutler/SKILL.md`. Install it into your agent's skills directory with:
+The repository contains `skills/script-butler/SKILL.md`. Install it into your agent's skills directory with:
 
 ```bash
 sbctl skill --install ~/.claude/skills   # use your agent's skills root

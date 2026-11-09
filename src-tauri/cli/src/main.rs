@@ -52,7 +52,7 @@ pub(crate) enum Commands {
     },
     /// Print or install the ScriptButler Agent Skill
     Skill {
-        /// Install into <SKILLS_ROOT>/scriptbutler/SKILL.md
+        /// Install into <SKILLS_ROOT>/script-butler/SKILL.md
         #[arg(long, value_name = "SKILLS_ROOT")]
         install: Option<PathBuf>,
     },
