@@ -94,6 +94,8 @@ Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflo
 
 When triggered by a tag, the artifacts are attached to the corresponding draft release; when triggered manually, they can be downloaded from the Artifacts of the workflow run. The Windows installer wizard follows the system language (all 9 languages built into the app are supported) and falls back to English when the system language is not supported.
 
+Each matrix job also publishes the `sbctl` binary it builds for the installer as a standalone release asset (and as a workflow artifact): `sbctl-linux-x86_64`, `sbctl-windows-x86_64.exe`, `sbctl-macos-aarch64`, and `sbctl-macos-x86_64`.
+
 ## Agent integration (CLI + Skill)
 
 The installer ships `sbctl`, a Rust CLI that operates on the same `scripts.json` as the desktop app. It works whether or not the app is running.
@@ -108,6 +110,18 @@ The installer ships `sbctl`, a Rust CLI that operates on the same `scripts.json`
 | Linux (AppImage) | Inside the AppImage | Not exposed; use the deb/rpm package |
 
 `sbctl env add` on Windows adds the executable directory to the current user's PATH (use `--system` for the machine PATH). On macOS/Linux it creates `~/.local/bin/sbctl` unless the directory is already on PATH. `sbctl env remove` undoes it.
+
+### Standalone CLI without the desktop app
+
+Releases also ship the raw CLI binaries, so you can use `sbctl` without installing the desktop app:
+
+```bash
+# Linux / macOS
+chmod +x sbctl-linux-x86_64          # sbctl-macos-aarch64 / sbctl-macos-x86_64 on macOS
+./sbctl-linux-x86_64 env add         # links ~/.local/bin/sbctl and reports PATH status
+```
+
+On Windows, rename `sbctl-windows-x86_64.exe` to `sbctl.exe` and run `sbctl env add` (it adds the executable's directory to PATH). The CLI resolves the data directory itself and creates `scripts.json` on the first write, so it works on a machine where the desktop app was never installed. macOS may block the first run of the unsigned binary; allow it under System Settings → Privacy & Security.
 
 ### Commands
 
