@@ -130,3 +130,65 @@ pub fn shell_command(cmdline: &str) -> Command {
         c
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::ScriptEntry;
+
+    fn entry(path: &str) -> ScriptEntry {
+        ScriptEntry {
+            path: path.to_string(),
+            name: "demo".to_string(),
+            lang: "plain".to_string(),
+            last_used_at: 0,
+            use_count: 0,
+            schemes: Vec::new(),
+            active_scheme_id: None,
+            managed: None,
+            source_path: None,
+            work_dir: None,
+        }
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn build_command_substitutes_placeholder_and_appends_path() {
+        assert_eq!(
+            build_command("python3 {file}", "/tmp/a b.py", false, None),
+            "python3 '/tmp/a b.py'"
+        );
+        assert_eq!(
+            build_command("python3", "/tmp/a.py", false, None),
+            "python3 '/tmp/a.py'"
+        );
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn build_command_prepends_cd_when_enabled() {
+        assert_eq!(
+            build_command("{file}", "/tmp/dir/a.py", true, None),
+            "cd '/tmp/dir' && '/tmp/dir/a.py'"
+        );
+        assert_eq!(
+            build_command("{file}", "/tmp/a.py", true, Some("/custom")),
+            "cd '/custom' && '/tmp/a.py'"
+        );
+    }
+
+    #[test]
+    fn entry_exec_dir_uses_work_dir_for_managed_entries() {
+        let mut e = entry("/data/scripts/123.py");
+        e.managed = Some(true);
+        e.source_path = Some("/proj/a.py".to_string());
+        e.work_dir = Some("/proj".to_string());
+        assert_eq!(entry_exec_dir(&e).as_deref(), Some("/proj"));
+
+        e.work_dir = None;
+        assert_eq!(entry_exec_dir(&e).as_deref(), Some("/proj"));
+
+        let linked = entry("/proj/b.py");
+        assert_eq!(entry_exec_dir(&linked).as_deref(), Some("/proj"));
+    }
+}

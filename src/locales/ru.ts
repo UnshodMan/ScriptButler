@@ -10,7 +10,6 @@ export const ru: Messages = {
   'action.cancel': 'Отмена',
   'action.clear': 'Очистить',
   'action.back': 'Назад',
-  'action.remove': 'Убрать',
   'action.addScript': 'Добавить скрипт',
 
   'grid.count': 'Скриптов: {n}',
@@ -35,7 +34,6 @@ export const ru: Messages = {
   'card.manageTip': 'Скопировать скрипт в управляемый каталог ScriptButler',
   'card.managed': 'Управляемый',
   'card.managedDone': 'Скрипт взят под управление: {path}',
-  'card.origin': 'Исходный путь: {path}',
   'card.execDir': 'Каталог выполнения: {dir}',
 
   'detail.dirtyTip': 'Есть несохранённые изменения',

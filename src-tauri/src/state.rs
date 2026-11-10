@@ -87,7 +87,10 @@ mod tests {
     use std::time::Duration;
 
     fn temp_dir() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("scriptbutler-state-{}", uuid::Uuid::new_v4()));
+        let dir = std::env::temp_dir().join(format!(
+            "scriptbutler-state-{}",
+            scriptbutler_core::ops::new_id()
+        ));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }

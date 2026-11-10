@@ -43,7 +43,7 @@ pub fn start_run(
     })?;
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
-    let run_id = uuid::Uuid::new_v4().to_string();
+    let run_id = scriptbutler_core::ops::new_id();
 
     let out_thread = stdout.map(|s| spawn_reader(app.clone(), run_id.clone(), s, true));
     let err_thread = stderr.map(|s| spawn_reader(app.clone(), run_id.clone(), s, false));

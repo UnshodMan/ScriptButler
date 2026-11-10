@@ -102,3 +102,59 @@ pub fn data_dir() -> Result<PathBuf, String> {
 pub fn managed_dir(data_dir: &Path) -> PathBuf {
     data_dir.join("scripts")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::ScriptEntry;
+
+    fn entry(path: &str) -> ScriptEntry {
+        ScriptEntry {
+            path: path.to_string(),
+            name: path.to_string(),
+            lang: "plain".to_string(),
+            last_used_at: 1,
+            use_count: 1,
+            schemes: Vec::new(),
+            active_scheme_id: None,
+            managed: None,
+            source_path: None,
+            work_dir: None,
+        }
+    }
+
+    fn temp_file() -> PathBuf {
+        std::env::temp_dir()
+            .join(format!("scriptbutler-store-{}", crate::ops::new_id()))
+            .join("scripts.json")
+    }
+
+    #[test]
+    fn save_and_load_roundtrip() {
+        let path = temp_file();
+        save_entries(&path, &[entry("/tmp/a.sh")]).unwrap();
+        let loaded = try_load_entries(&path).unwrap();
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].path, "/tmp/a.sh");
+
+        std::fs::remove_dir_all(path.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn missing_file_is_an_empty_list() {
+        let path = temp_file();
+        assert!(try_load_entries(&path).unwrap().is_empty());
+    }
+
+    #[test]
+    fn invalid_json_is_reported() {
+        let path = temp_file();
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, "{oops").unwrap();
+        assert!(matches!(
+            try_load_entries(&path),
+            Err(StoreError::InvalidData(_))
+        ));
+        std::fs::remove_dir_all(path.parent().unwrap()).unwrap();
+    }
+}

@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use scriptbutler_core::ops::CoreError;
-pub use scriptbutler_core::models::{EntryView, RunScheme, SearchGroups};
+pub use scriptbutler_core::models::{EntryView, SearchGroups};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]

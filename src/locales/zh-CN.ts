@@ -8,7 +8,6 @@ export const zhCN = {
   'action.cancel': '取消',
   'action.clear': '清空',
   'action.back': '返回',
-  'action.remove': '移除',
   'action.addScript': '添加脚本',
 
   'grid.count': '{n} 个脚本',
@@ -33,7 +32,6 @@ export const zhCN = {
   'card.manageTip': '复制脚本到 ScriptButler 的托管目录',
   'card.managed': '已托管',
   'card.managedDone': '已托管脚本：{path}',
-  'card.origin': '原路径：{path}',
   'card.execDir': '执行目录：{dir}',
 
   'detail.dirtyTip': '有未保存的修改',

@@ -8,11 +8,9 @@ version = "0.2.1"
 dependencies = [
  "scriptbutler-core",
  "serde",
- "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
- "uuid",
 ]
 
 [[package]]

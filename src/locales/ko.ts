@@ -10,7 +10,6 @@ export const ko: Messages = {
   'action.cancel': '취소',
   'action.clear': '지우기',
   'action.back': '뒤로',
-  'action.remove': '제거',
   'action.addScript': '스크립트 추가',
 
   'grid.count': '스크립트 {n}개',
@@ -35,7 +34,6 @@ export const ko: Messages = {
   'card.manageTip': '스크립트를 ScriptButler 관리 디렉터리에 복사',
   'card.managed': '관리됨',
   'card.managedDone': '스크립트를 관리 대상에 추가했습니다: {path}',
-  'card.origin': '원본 경로: {path}',
   'card.execDir': '실행 디렉터리: {dir}',
 
   'detail.dirtyTip': '저장되지 않은 변경 사항이 있습니다',

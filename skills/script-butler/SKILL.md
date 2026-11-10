@@ -30,9 +30,9 @@ Use the `sbctl` command-line tool to manage scripts stored by the ScriptButler d
 
 Use `sbctl add <absolute-path> --json` instead when the user wants to keep the script in place (no copy).
 
-After `manage`, both the original entry and the managed copy exist, so referring to the script by bare file name becomes `ambiguous`. Use `data.path` from the `manage` result (or the absolute source path) for later commands.
+If the script was already registered, `manage` keeps the original entry and adds the managed copy, so referring to it by bare file name becomes `ambiguous`. Use `data.path` from the `manage` result (or the absolute source path) for later commands.
 
-Use `--command '<template>'` when the default run command is wrong. `{file}` is replaced with the script path; when omitted, the path is appended automatically. Example: `sbctl manage ./task.py --command 'python3 {file}' --json`.
+Use `--command '<template>'` when the default run command is wrong. `{file}` is replaced with the script path; when omitted, the path is appended automatically. Example: `sbctl manage /absolute/path/task.py --command 'python3 {file}' --json`.
 
 Use `--name`, `--scheme-name`, and `--workdir` to control the display name, default scheme name, and execution directory.
 

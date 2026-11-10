@@ -63,3 +63,24 @@ pub fn detect(path: &str) -> LangInfo {
         _ => PLAIN,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detects_language_and_default_command_by_extension() {
+        assert_eq!(detect("a.py").id, "python");
+        assert_eq!(detect("a.PY").default_command, "python3 {file}");
+        assert_eq!(detect("a.json").default_command, "cat {file}");
+        assert_eq!(detect("a.md").id, "markdown");
+        assert_eq!(detect("a.sh").id, "shell");
+    }
+
+    #[test]
+    fn falls_back_to_plain_without_a_valid_extension() {
+        assert_eq!(detect("Makefile").id, "plain");
+        assert_eq!(detect("dir.with.dot/file").id, "plain");
+        assert_eq!(detect("trailing.").id, "plain");
+    }
+}

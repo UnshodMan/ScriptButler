@@ -32,6 +32,18 @@
 
 Windows 下 `sbctl env add` 会将可执行文件所在目录加入当前用户的 PATH（加 `--system` 则加入机器级 PATH）。macOS/Linux 下会创建 `~/.local/bin/sbctl`，除非该目录已在 PATH 中。`sbctl env remove` 撤销该操作。
 
+### 不安装桌面应用，单独使用 CLI
+
+Releases 同时提供原样的 CLI 二进制，因此即使不安装桌面应用也能使用 `sbctl`：
+
+```bash
+# Linux / macOS
+chmod +x sbctl-linux-x86_64          # macOS 使用 sbctl-macos-aarch64 / sbctl-macos-x86_64
+./sbctl-linux-x86_64 env add         # 创建 ~/.local/bin/sbctl 链接并报告 PATH 状态
+```
+
+Windows 下将 `sbctl-windows-x86_64.exe` 重命名为 `sbctl.exe` 后运行 `sbctl env add`（会把可执行文件所在目录加入 PATH）。CLI 会自行解析数据目录，并在首次写入时创建 `scripts.json`，因此在从未安装过桌面应用的机器上也能使用。macOS 可能阻止首次运行未签名的二进制文件，请在「系统设置 → 隐私与安全性」中允许。
+
 ### 命令
 
 | 命令                                                                                          | 说明                         |
@@ -156,6 +168,8 @@ npm run version:bump -- 0.2.3   # 指定具体版本
 | macOS   | arm64 与 x86\_64 的 `.dmg`      |
 
 推送标签时产物会附加到对应的草稿 Release，手动触发时可在 Actions 运行的 Artifacts 中下载。Windows 安装向导的界面语言跟随系统语言（支持应用内置的 9 种语言），系统语言不受支持时回退英语。
+
+每个矩阵任务还会将它为安装包构建的 `sbctl` 二进制作为独立的 Release 资产（以及 workflow artifact）发布：`sbctl-linux-x86_64`、`sbctl-windows-x86_64.exe`、`sbctl-macos-aarch64`、`sbctl-macos-x86_64`。
 
 ## 数据存储
 

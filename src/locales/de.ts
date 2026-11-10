@@ -10,7 +10,6 @@ export const de: Messages = {
   'action.cancel': 'Abbrechen',
   'action.clear': 'Leeren',
   'action.back': 'Zurück',
-  'action.remove': 'Entfernen',
   'action.addScript': 'Skript hinzufügen',
 
   'grid.count': '{n} Skripte',
@@ -35,7 +34,6 @@ export const de: Messages = {
   'card.manageTip': 'Skript in das verwaltete Verzeichnis von ScriptButler kopieren',
   'card.managed': 'Verwaltet',
   'card.managedDone': 'Skript verwaltet: {path}',
-  'card.origin': 'Ursprünglicher Pfad: {path}',
   'card.execDir': 'Ausführungsverzeichnis: {dir}',
 
   'detail.dirtyTip': 'Ungespeicherte Änderungen',

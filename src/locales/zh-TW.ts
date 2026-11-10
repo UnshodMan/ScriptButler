@@ -10,7 +10,6 @@ export const zhTW: Messages = {
   'action.cancel': '取消',
   'action.clear': '清空',
   'action.back': '返回',
-  'action.remove': '移除',
   'action.addScript': '新增腳本',
 
   'grid.count': '{n} 個腳本',
@@ -35,7 +34,6 @@ export const zhTW: Messages = {
   'card.manageTip': '將腳本複製到 ScriptButler 的託管目錄',
   'card.managed': '已託管',
   'card.managedDone': '已託管腳本：{path}',
-  'card.origin': '原路徑：{path}',
   'card.execDir': '執行目錄：{dir}',
 
   'detail.dirtyTip': '有未儲存的修改',

@@ -10,7 +10,6 @@ export const ja: Messages = {
   'action.cancel': 'キャンセル',
   'action.clear': 'クリア',
   'action.back': '戻る',
-  'action.remove': '削除',
   'action.addScript': 'スクリプトを追加',
 
   'grid.count': 'スクリプト {n} 件',
@@ -35,7 +34,6 @@ export const ja: Messages = {
   'card.manageTip': 'スクリプトを ScriptButler の管理ディレクトリにコピー',
   'card.managed': '管理中',
   'card.managedDone': 'スクリプトを管理下に追加しました：{path}',
-  'card.origin': '元のパス：{path}',
   'card.execDir': '実行ディレクトリ：{dir}',
 
   'detail.dirtyTip': '未保存の変更があります',

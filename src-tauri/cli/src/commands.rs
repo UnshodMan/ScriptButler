@@ -203,22 +203,14 @@ fn cmd_remove(args: RefArgs, json: bool) -> Result<i32, CliError> {
 fn cmd_list(query: Option<String>, json: bool) -> Result<i32, CliError> {
     let store = Store::load()?;
     let query = query
-        .map(|q| q.trim().to_lowercase())
+        .map(|q| q.trim().to_string())
         .filter(|q| !q.is_empty());
     let views: Vec<EntryView> = ops::sorted_views(&store.entries)
         .into_iter()
         .filter(|view| {
             query
-                .as_ref()
-                .map(|q| {
-                    view.entry.name.to_lowercase().contains(q)
-                        || view
-                            .exec_dir
-                            .as_deref()
-                            .unwrap_or("")
-                            .to_lowercase()
-                            .contains(q)
-                })
+                .as_deref()
+                .map(|q| search::matches_meta(&view.entry, q))
                 .unwrap_or(true)
         })
         .collect();

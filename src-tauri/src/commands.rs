@@ -1,20 +1,12 @@
 use tauri::{AppHandle, State};
-use uuid::Uuid;
 
 use scriptbutler_core::exec::to_view;
-use scriptbutler_core::language;
 use scriptbutler_core::ops::{self, ManageOptions};
 use scriptbutler_core::search;
 
-use crate::models::{
-    ApiError, ListResponse, RunScheme, SearchGroups,
-};
+use crate::models::{ApiError, ListResponse, SearchGroups};
 use crate::runner;
 use crate::state::AppState;
-
-fn new_id() -> String {
-    Uuid::new_v4().to_string()
-}
 
 #[tauri::command]
 pub fn list_scripts(state: State<AppState>) -> ListResponse {
@@ -115,25 +107,8 @@ pub fn mark_used(state: State<AppState>, path: String) -> ListResponse {
 #[tauri::command]
 pub fn ensure_default_scheme(state: State<AppState>, path: String, name: String) -> ListResponse {
     let mut entries = state.lock_entries();
-    let mut dirty = false;
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        if entry.schemes.is_empty() {
-            let lang = language::detect(&entry.path);
-            let scheme = RunScheme {
-                id: new_id(),
-                name,
-                command: lang.default_command.to_string(),
-                cd_to_script_dir: true,
-            };
-            entry.active_scheme_id = Some(scheme.id.clone());
-            entry.schemes.push(scheme);
-            dirty = true;
-        }
-        Some(to_view(entry))
-    } else {
-        None
-    };
-    if dirty {
+    let changed = ops::ensure_default_scheme(&mut entries, &path, &name);
+    if changed.is_some() {
         state.save_entries(&entries);
     }
     ListResponse {
@@ -151,19 +126,7 @@ pub fn create_scheme(
     cd_to_script_dir: bool,
 ) -> ListResponse {
     let mut entries = state.lock_entries();
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        let scheme = RunScheme {
-            id: new_id(),
-            name,
-            command,
-            cd_to_script_dir,
-        };
-        entry.active_scheme_id = Some(scheme.id.clone());
-        entry.schemes.push(scheme);
-        Some(to_view(entry))
-    } else {
-        None
-    };
+    let changed = ops::create_scheme(&mut entries, &path, &name, &command, cd_to_script_dir);
     if changed.is_some() {
         state.save_entries(&entries);
     }
@@ -183,17 +146,14 @@ pub fn update_scheme(
     cd_to_script_dir: bool,
 ) -> ListResponse {
     let mut entries = state.lock_entries();
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        if let Some(scheme) = entry.schemes.iter_mut().find(|s| s.id == id) {
-            scheme.name = name;
-            scheme.command = command;
-            scheme.cd_to_script_dir = cd_to_script_dir;
-            entry.active_scheme_id = Some(id);
-        }
-        Some(to_view(entry))
-    } else {
-        None
-    };
+    let changed = ops::update_scheme(
+        &mut entries,
+        &path,
+        &id,
+        &name,
+        &command,
+        cd_to_script_dir,
+    );
     if changed.is_some() {
         state.save_entries(&entries);
     }
@@ -206,26 +166,8 @@ pub fn update_scheme(
 #[tauri::command]
 pub fn delete_scheme(state: State<AppState>, path: String, id: String) -> ListResponse {
     let mut entries = state.lock_entries();
-    let mut dirty = false;
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        let before = entry.schemes.len();
-        entry.schemes.retain(|s| s.id != id);
-        if entry.schemes.len() != before {
-            let active_valid = entry
-                .active_scheme_id
-                .as_ref()
-                .map(|active| entry.schemes.iter().any(|s| &s.id == active))
-                .unwrap_or(false);
-            if !active_valid {
-                entry.active_scheme_id = entry.schemes.first().map(|s| s.id.clone());
-            }
-            dirty = true;
-        }
-        Some(to_view(entry))
-    } else {
-        None
-    };
-    if dirty {
+    let changed = ops::delete_scheme(&mut entries, &path, &id);
+    if changed.is_some() {
         state.save_entries(&entries);
     }
     ListResponse {
@@ -237,17 +179,8 @@ pub fn delete_scheme(state: State<AppState>, path: String, id: String) -> ListRe
 #[tauri::command]
 pub fn set_active_scheme(state: State<AppState>, path: String, id: String) -> ListResponse {
     let mut entries = state.lock_entries();
-    let mut dirty = false;
-    let changed = if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
-        if entry.schemes.iter().any(|s| s.id == id) {
-            entry.active_scheme_id = Some(id);
-            dirty = true;
-        }
-        Some(to_view(entry))
-    } else {
-        None
-    };
-    if dirty {
+    let changed = ops::set_active_scheme(&mut entries, &path, &id);
+    if changed.is_some() {
         state.save_entries(&entries);
     }
     ListResponse {

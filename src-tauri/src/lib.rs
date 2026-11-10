@@ -5,9 +5,7 @@ mod state;
 
 use tauri::Manager;
 
-pub use scriptbutler_core::unix_ms;
-
-// Rust 业务层：持久化、排序、语言识别、命令拼接、脚本托管、检索与运行。
+// Tauri 适配层：IPC 命令、子进程事件与状态同步；业务逻辑位于 scriptbutler-core。
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
