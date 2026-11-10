@@ -82,13 +82,26 @@ Windows 下将 `sbctl-windows-x86_64.exe` 重命名为 `sbctl.exe` 后运行 `sb
 
 ### Agent Skill
 
-仓库包含 `skills/script-butler/SKILL.md`。安装到你的 Agent 技能目录：
+仓库包含 `skills/script-butler/SKILL.md`。可按需选择以下任一方式安装：
 
-```bash
-sbctl skill --install ~/.claude/skills   # 替换为你的 Agent 技能根目录
-```
+| Agent | 用户级技能根目录 |
+| --- | --- |
+| Claude Code | `~/.claude/skills` |
+| Codex | `~/.agents/skills` |
+| WorkBuddy | `~/.workbuddy/skills` |
 
-`sbctl skill` 会将同一文档打印到 stdout。
+1. **手动复制**：将仓库中的 `skills/script-butler/` 目录整体复制到技能根目录，得到 `<技能根目录>/script-butler/SKILL.md`。
+2. **通过 `sbctl` 安装**：`sbctl skill --install <技能根目录>` 会自动写入 `<技能根目录>/script-butler/SKILL.md`。
+
+   ```bash
+   sbctl skill --install ~/.claude/skills       # Claude Code
+   sbctl skill --install ~/.agents/skills       # Codex
+   sbctl skill --install ~/.workbuddy/skills    # WorkBuddy
+   ```
+
+3. **从打印内容手动创建**：运行 `sbctl skill` 会将文档打印到 stdout，将内容粘贴到 `<技能根目录>/script-butler/SKILL.md` 即可。
+
+Windows 下对应 `%USERPROFILE%\.claude\skills` 等路径；替换为其他 Agent 的技能根目录即可。
 
 ### 数据同步
 

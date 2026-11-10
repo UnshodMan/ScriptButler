@@ -84,13 +84,26 @@ Pass `--json` for machine-readable output:
 
 ### Agent Skill
 
-The repository contains `skills/script-butler/SKILL.md`. Install it into your agent's skills directory with:
+The repository contains `skills/script-butler/SKILL.md`. Pick whichever installation method fits your setup:
 
-```bash
-sbctl skill --install ~/.claude/skills   # use your agent's skills root
-```
+| Agent | User-level skills root |
+| --- | --- |
+| Claude Code | `~/.claude/skills` |
+| Codex | `~/.agents/skills` |
+| WorkBuddy | `~/.workbuddy/skills` |
 
-`sbctl skill` prints the same document to stdout.
+1. **Copy manually**: copy the repository's `skills/script-butler/` directory into a skills root, resulting in `<skills-root>/script-butler/SKILL.md`.
+2. **Install with `sbctl`**: `sbctl skill --install <skills-root>` writes `<skills-root>/script-butler/SKILL.md` for you.
+
+   ```bash
+   sbctl skill --install ~/.claude/skills       # Claude Code
+   sbctl skill --install ~/.agents/skills       # Codex
+   sbctl skill --install ~/.workbuddy/skills    # WorkBuddy
+   ```
+
+3. **Create from the printed document**: `sbctl skill` prints the document to stdout; paste it into `<skills-root>/script-butler/SKILL.md` yourself.
+
+On Windows, the same locations live under `%USERPROFILE%` (for example `%USERPROFILE%\.claude\skills`). Pass any other directory to target a different agent.
 
 ### Data synchronization
 
