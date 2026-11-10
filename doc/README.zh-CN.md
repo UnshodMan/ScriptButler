@@ -17,6 +17,71 @@
 - **国际化**：内置 9 种界面语言（简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский），默认跟随系统语言自动选择，可在主界面与详情页右上角随时切换，选择会被记住。
 - **Agent 集成**：随桌面应用一起分发 `sbctl` CLI，Agent 与终端可使用稳定的 `--json` 输出添加、管理、列出、搜索、运行与移除脚本，`sbctl skill --install <dir>` 可安装开箱即用的 Agent Skill。详见 [Agent 集成（CLI + Skill）](#agent-集成-cli--skill)。
 
+## Agent 集成（CLI + Skill）
+
+安装包会附带 `sbctl`——一个操作与应用相同的 `scripts.json` 的 Rust CLI。无论应用是否在运行都可以使用。
+
+### 二进制位置与 PATH
+
+| 平台              | 二进制位置                                   | PATH                                                                                              |
+| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Linux（deb/rpm）  | `/usr/bin/sbctl`                        | 自动添加                                                                                              |
+| Windows（NSIS）   | `<安装目录>\sbctl.exe`                      | 在安装器中勾选「Add sbctl to PATH」，或运行 `sbctl env add`                                                    |
+| macOS（dmg）      | `ScriptButler.app/Contents/MacOS/sbctl` | 运行 `/Applications/ScriptButler.app/Contents/MacOS/sbctl env add`；如提示需将 `~/.local/bin` 加入 PATH 则照做 |
+| Linux（AppImage） | AppImage 内部                             | 不对外暴露；请使用 deb/rpm 包                                                                               |
+
+Windows 下 `sbctl env add` 会将可执行文件所在目录加入当前用户的 PATH（加 `--system` 则加入机器级 PATH）。macOS/Linux 下会创建 `~/.local/bin/sbctl`，除非该目录已在 PATH 中。`sbctl env remove` 撤销该操作。
+
+### 命令
+
+| 命令                                                                                          | 说明                         |
+| ------------------------------------------------------------------------------------------- | -------------------------- |
+| `sbctl add <path> [--name N] [--command TPL] [--scheme-name N] [--json]`                    | 就地注册脚本；重复添加仅更新 MRU         |
+| `sbctl manage <path> [--name N] [--workdir DIR] [--command TPL] [--scheme-name N] [--json]` | 将脚本复制到托管目录；对已注册与未注册文件均可用   |
+| `sbctl remove <name\|path> [--json]`                                                        | 移除条目；绝不删除文件                |
+| `sbctl list [--query KW] [--json]`                                                          | 按 MRU 顺序列出条目               |
+| `sbctl show <name\|path> [--json]`                                                          | 展示条目、其方案与生效命令              |
+| `sbctl search <keyword> [--content] [--json]`                                               | 搜索名称、目录，可选搜索内容             |
+| `sbctl run <name\|path> [--scheme ID\|NAME] [--json]`                                       | 运行激活或指定的方案                 |
+| `sbctl path [--json]`                                                                       | 打印数据目录、store 路径、托管目录与可执行文件 |
+| `sbctl env add\|remove\|status [--system] [--json]`                                         | 管理 PATH                    |
+| `sbctl skill [--install <skills-root>]`                                                     | 打印或安装 Agent Skill          |
+
+`<name|path>` 依次按绝对路径、托管脚本的源路径、文件名（不区分大小写）解析。名称重复时返回 `ambiguous` 错误并附候选路径。
+
+### JSON 输出与退出码
+
+传入 `--json` 获得机器可读输出：
+
+```json
+{ "ok": true, "data": [ ... ] }
+{ "ok": false, "error": { "code": "not_found", "message": "..." } }
+```
+
+`add`/`manage` 还会返回 `created` 与 `copiedTo`；`run` 返回 `{ exitCode, stdout, stderr }`。
+
+| 退出码   | 含义                     |
+| ----- | ---------------------- |
+| 0     | 成功                     |
+| 1     | 运行时错误（I/O、spawn、托管）    |
+| 2     | 未找到、引用有歧义或用法错误         |
+| 3     | `scripts.json` 无效      |
+| 脚本返回码 | `sbctl run` 返回脚本自身的退出码 |
+
+### Agent Skill
+
+仓库包含 `skills/script-butler/SKILL.md`。安装到你的 Agent 技能目录：
+
+```bash
+sbctl skill --install ~/.claude/skills   # 替换为你的 Agent 技能根目录
+```
+
+`sbctl skill` 会将同一文档打印到 stdout。
+
+### 数据同步
+
+CLI 与应用读写同一个 `scripts.json`。当文件在磁盘上发生变化时，应用会在每条命令前重新加载，并在窗口重新获得焦点时刷新卡片列表。若两个进程同时写入，后写入者生效。
+
 ## 技术栈
 
 | 层    | 技术                                 |
@@ -91,71 +156,6 @@ npm run version:bump -- 0.2.3   # 指定具体版本
 | macOS   | arm64 与 x86\_64 的 `.dmg`      |
 
 推送标签时产物会附加到对应的草稿 Release，手动触发时可在 Actions 运行的 Artifacts 中下载。Windows 安装向导的界面语言跟随系统语言（支持应用内置的 9 种语言），系统语言不受支持时回退英语。
-
-## Agent 集成（CLI + Skill）
-
-安装包会附带 `sbctl`——一个操作与应用相同的 `scripts.json` 的 Rust CLI。无论应用是否在运行都可以使用。
-
-### 二进制位置与 PATH
-
-| 平台              | 二进制位置                                   | PATH                                                                                              |
-| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Linux（deb/rpm）  | `/usr/bin/sbctl`                        | 自动添加                                                                                              |
-| Windows（NSIS）   | `<安装目录>\sbctl.exe`                      | 在安装器中勾选「Add sbctl to PATH」，或运行 `sbctl env add`                                                    |
-| macOS（dmg）      | `ScriptButler.app/Contents/MacOS/sbctl` | 运行 `/Applications/ScriptButler.app/Contents/MacOS/sbctl env add`；如提示需将 `~/.local/bin` 加入 PATH 则照做 |
-| Linux（AppImage） | AppImage 内部                             | 不对外暴露；请使用 deb/rpm 包                                                                               |
-
-Windows 下 `sbctl env add` 会将可执行文件所在目录加入当前用户的 PATH（加 `--system` 则加入机器级 PATH）。macOS/Linux 下会创建 `~/.local/bin/sbctl`，除非该目录已在 PATH 中。`sbctl env remove` 撤销该操作。
-
-### 命令
-
-| 命令                                                                                          | 说明                         |
-| ------------------------------------------------------------------------------------------- | -------------------------- |
-| `sbctl add <path> [--name N] [--command TPL] [--scheme-name N] [--json]`                    | 就地注册脚本；重复添加仅更新 MRU         |
-| `sbctl manage <path> [--name N] [--workdir DIR] [--command TPL] [--scheme-name N] [--json]` | 将脚本复制到托管目录；对已注册与未注册文件均可用   |
-| `sbctl remove <name\|path> [--json]`                                                        | 移除条目；绝不删除文件                |
-| `sbctl list [--query KW] [--json]`                                                          | 按 MRU 顺序列出条目               |
-| `sbctl show <name\|path> [--json]`                                                          | 展示条目、其方案与生效命令              |
-| `sbctl search <keyword> [--content] [--json]`                                               | 搜索名称、目录，可选搜索内容             |
-| `sbctl run <name\|path> [--scheme ID\|NAME] [--json]`                                       | 运行激活或指定的方案                 |
-| `sbctl path [--json]`                                                                       | 打印数据目录、store 路径、托管目录与可执行文件 |
-| `sbctl env add\|remove\|status [--system] [--json]`                                         | 管理 PATH                    |
-| `sbctl skill [--install <skills-root>]`                                                     | 打印或安装 Agent Skill          |
-
-`<name|path>` 依次按绝对路径、托管脚本的源路径、文件名（不区分大小写）解析。名称重复时返回 `ambiguous` 错误并附候选路径。
-
-### JSON 输出与退出码
-
-传入 `--json` 获得机器可读输出：
-
-```json
-{ "ok": true, "data": [ ... ] }
-{ "ok": false, "error": { "code": "not_found", "message": "..." } }
-```
-
-`add`/`manage` 还会返回 `created` 与 `copiedTo`；`run` 返回 `{ exitCode, stdout, stderr }`。
-
-| 退出码   | 含义                     |
-| ----- | ---------------------- |
-| 0     | 成功                     |
-| 1     | 运行时错误（I/O、spawn、托管）    |
-| 2     | 未找到、引用有歧义或用法错误         |
-| 3     | `scripts.json` 无效      |
-| 脚本返回码 | `sbctl run` 返回脚本自身的退出码 |
-
-### Agent Skill
-
-仓库包含 `skills/script-butler/SKILL.md`。安装到你的 Agent 技能目录：
-
-```bash
-sbctl skill --install ~/.claude/skills   # 替换为你的 Agent 技能根目录
-```
-
-`sbctl skill` 会将同一文档打印到 stdout。
-
-### 数据同步
-
-CLI 与应用读写同一个 `scripts.json`。当文件在磁盘上发生变化时，应用会在每条命令前重新加载，并在窗口重新获得焦点时刷新卡片列表。若两个进程同时写入，后写入者生效。
 
 ## 数据存储
 

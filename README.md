@@ -19,83 +19,6 @@ A desktop script management app built with **Tauri v2 + Vue 3 + TypeScript**. It
 - **Internationalization**: Ships with 9 UI languages (简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский). The app follows the system language by default, and the language can be switched at any time from the top-right corner of the main and detail pages; the choice is remembered.
 - **Agent integration**: Ships the `sbctl` CLI with the desktop app. Agents and terminals can add, manage, list, search, run, and remove scripts with stable `--json` output, and `sbctl skill --install <dir>` installs a ready-to-use Agent Skill. See [Agent integration](#agent-integration-cli--skill).
 
-## Tech stack
-
-| Layer             | Technology                        |
-| ----------------- | --------------------------------- |
-| Desktop framework | Tauri v2                          |
-| Frontend          | Vue 3 + TypeScript + Vite + Pinia |
-| Editor            | CodeMirror 6 (`one-dark` theme) |
-| Plugin            | `tauri-plugin-dialog`           |
-| CLI               | Rust (`scriptbutler-core` + `clap`) |
-
-> Architecture convention: **business logic lives in the shared Rust core crate** (`src-tauri/core`), used by both the desktop app and the `sbctl` CLI. The frontend only calls these capabilities through Tauri IPC commands and events and renders the UI.
-
-## Project structure
-
-```
-src/                  # Vue frontend (UI rendering and IPC calls only)
-  lib/                # api / language / runner / editor / toast / time / i18n
-  locales/            # 9 language packs (zh-CN is the baseline; other languages stay in sync with it)
-  stores/scripts.ts   # Pinia store (thin cache of the backend entry list)
-  components/         # CardGrid / ScriptCard / ScriptDetail / RunBar / SchemeDialog / OutputPanel / LangSwitcher
-src-tauri/            # Tauri desktop app (IPC commands + child process events)
-  src/commands.rs     # Thin IPC command wrappers over the shared core
-  src/state.rs        # In-memory entries + scripts.json reload/save
-  src/runner.rs       # Child process startup, output events, stop
-  core/               # scriptbutler-core: models / store / ops / exec / search / language
-  cli/                # scriptbutler-cli: sbctl command-line interface
-  nsis/               # Windows installer template with the sbctl PATH option
-  capabilities/       # core / dialog permissions
-skills/               # Agent Skill (script-butler/SKILL.md)
-scripts/              # build-cli.mjs / bump-version.mjs
-```
-
-## Development
-
-Prerequisites: Node.js, the Rust toolchain, and Tauri's system dependencies (on Linux, `webkit2gtk-4.1` and others).
-
-```bash
-npm install         # Install dependencies
-npm run build:cli   # Build the sbctl sidecar (also runs automatically before tauri dev/build)
-npm run tauri dev   # Start the desktop app (development mode)
-```
-
-## Build
-
-```bash
-npm run build        # Frontend type check + bundling (vue-tsc + vite)
-npm run build:cli    # Build the sbctl sidecar only
-npm run tauri build  # Build the desktop installer (bundles sbctl)
-```
-
-The bundler picks up `src-tauri/binaries/sbctl-<target-triple>` through `bundle.externalBin`. The `beforeBuildCommand` builds it for the target triple that Tauri is using (`TAURI_ENV_TARGET_TRIPLE`), and CI pre-builds it for each matrix target.
-
-### Version bumping
-
-The app version is mirrored in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. The workspace version in `[workspace.package]` is inherited by `scriptbutler-core` and `scriptbutler-cli`; the script updates it and all three lockfile entries. Bump everything in one step:
-
-```bash
-npm run version:bump -- patch   # 0.1.0 -> 0.1.1
-npm run version:bump -- minor   # 0.1.0 -> 0.2.0
-npm run version:bump -- major   # 0.1.0 -> 1.0.0
-npm run version:bump -- 0.2.3   # set an explicit version
-```
-
-### Continuous integration
-
-Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflows/build.yml`) builds installers for each platform in parallel on GitHub Actions:
-
-| Platform | Artifacts                           |
-| -------- | ----------------------------------- |
-| Linux    | `.deb` / `.rpm` / `.AppImage` |
-| Windows  | NSIS installer (MSI is not built)   |
-| macOS    | `.dmg` for arm64 and x86_64       |
-
-When triggered by a tag, the artifacts are attached to the corresponding draft release; when triggered manually, they can be downloaded from the Artifacts of the workflow run. The Windows installer wizard follows the system language (all 9 languages built into the app are supported) and falls back to English when the system language is not supported.
-
-Each matrix job also publishes the `sbctl` binary it builds for the installer as a standalone release asset (and as a workflow artifact): `sbctl-linux-x86_64`, `sbctl-windows-x86_64.exe`, `sbctl-macos-aarch64`, and `sbctl-macos-x86_64`.
-
 ## Agent integration (CLI + Skill)
 
 The installer ships `sbctl`, a Rust CLI that operates on the same `scripts.json` as the desktop app. It works whether or not the app is running.
@@ -172,6 +95,83 @@ sbctl skill --install ~/.claude/skills   # use your agent's skills root
 ### Data synchronization
 
 The CLI reads and writes the same `scripts.json` as the app. The app reloads the file before each command when it changed on disk and refreshes the card list when the window regains focus. If both processes write at the same time, the last writer wins.
+
+## Tech stack
+
+| Layer             | Technology                        |
+| ----------------- | --------------------------------- |
+| Desktop framework | Tauri v2                          |
+| Frontend          | Vue 3 + TypeScript + Vite + Pinia |
+| Editor            | CodeMirror 6 (`one-dark` theme) |
+| Plugin            | `tauri-plugin-dialog`           |
+| CLI               | Rust (`scriptbutler-core` + `clap`) |
+
+> Architecture convention: **business logic lives in the shared Rust core crate** (`src-tauri/core`), used by both the desktop app and the `sbctl` CLI. The frontend only calls these capabilities through Tauri IPC commands and events and renders the UI.
+
+## Project structure
+
+```
+src/                  # Vue frontend (UI rendering and IPC calls only)
+  lib/                # api / language / runner / editor / toast / time / i18n
+  locales/            # 9 language packs (zh-CN is the baseline; other languages stay in sync with it)
+  stores/scripts.ts   # Pinia store (thin cache of the backend entry list)
+  components/         # CardGrid / ScriptCard / ScriptDetail / RunBar / SchemeDialog / OutputPanel / LangSwitcher
+src-tauri/            # Tauri desktop app (IPC commands + child process events)
+  src/commands.rs     # Thin IPC command wrappers over the shared core
+  src/state.rs        # In-memory entries + scripts.json reload/save
+  src/runner.rs       # Child process startup, output events, stop
+  core/               # scriptbutler-core: models / store / ops / exec / search / language
+  cli/                # scriptbutler-cli: sbctl command-line interface
+  nsis/               # Windows installer template with the sbctl PATH option
+  capabilities/       # core / dialog permissions
+skills/               # Agent Skill (script-butler/SKILL.md)
+scripts/              # build-cli.mjs / bump-version.mjs
+```
+
+## Development
+
+Prerequisites: Node.js, the Rust toolchain, and Tauri's system dependencies (on Linux, `webkit2gtk-4.1` and others).
+
+```bash
+npm install         # Install dependencies
+npm run build:cli   # Build the sbctl sidecar (also runs automatically before tauri dev/build)
+npm run tauri dev   # Start the desktop app (development mode)
+```
+
+## Build
+
+```bash
+npm run build        # Frontend type check + bundling (vue-tsc + vite)
+npm run build:cli    # Build the sbctl sidecar only
+npm run tauri build  # Build the desktop installer (bundles sbctl)
+```
+
+The bundler picks up `src-tauri/binaries/sbctl-<target-triple>` through `bundle.externalBin`. The `beforeBuildCommand` builds it for the target triple that Tauri is using (`TAURI_ENV_TARGET_TRIPLE`), and CI pre-builds it for each matrix target.
+
+### Version bumping
+
+The app version is mirrored in `package.json`, `package-lock.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. The workspace version in `[workspace.package]` is inherited by `scriptbutler-core` and `scriptbutler-cli`; the script updates it and all three lockfile entries. Bump everything in one step:
+
+```bash
+npm run version:bump -- patch   # 0.1.0 -> 0.1.1
+npm run version:bump -- minor   # 0.1.0 -> 0.2.0
+npm run version:bump -- major   # 0.1.0 -> 1.0.0
+npm run version:bump -- 0.2.3   # set an explicit version
+```
+
+### Continuous integration
+
+Pushing a `v*` tag or manually triggering the `Build` workflow (`.github/workflows/build.yml`) builds installers for each platform in parallel on GitHub Actions:
+
+| Platform | Artifacts                           |
+| -------- | ----------------------------------- |
+| Linux    | `.deb` / `.rpm` / `.AppImage` |
+| Windows  | NSIS installer (MSI is not built)   |
+| macOS    | `.dmg` for arm64 and x86_64       |
+
+When triggered by a tag, the artifacts are attached to the corresponding draft release; when triggered manually, they can be downloaded from the Artifacts of the workflow run. The Windows installer wizard follows the system language (all 9 languages built into the app are supported) and falls back to English when the system language is not supported.
+
+Each matrix job also publishes the `sbctl` binary it builds for the installer as a standalone release asset (and as a workflow artifact): `sbctl-linux-x86_64`, `sbctl-windows-x86_64.exe`, `sbctl-macos-aarch64`, and `sbctl-macos-x86_64`.
 
 ## Data storage
 
