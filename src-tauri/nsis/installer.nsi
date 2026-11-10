@@ -515,6 +515,12 @@ LangString choowHowToInstall 0 ""
   !include "{{this}}"
 {{/each}}
 
+; sbctl page strings must be defined after MUI_LANGUAGE so that the ${LANG_*}
+; constants (and their language tables) exist; see sbctl.nsh.
+!ifmacrodef SBCTL_LANGSTRINGS
+  !insertmacro SBCTL_LANGSTRINGS
+!endif
+
 Function .onInit
   ${GetOptions} $CMDLINE "/P" $PassiveMode
   ${IfNot} ${Errors}

@@ -4,6 +4,12 @@
 Var SbctlAddToPath
 Var SbctlPathCheckbox
 
+; The ${LANG_*} constants only exist after MUI_LANGUAGE has loaded the language
+; files, and this file is included before that. Defining the strings here would
+; silently assign every translation to the default language (1033) and let the
+; last one (Russian) win, so installer.nsi expands this macro at the end instead.
+!macro SBCTL_LANGSTRINGS
+
 LangString sbctlPathTitle ${LANG_ENGLISH} "Command-line tool"
 LangString sbctlPathSubtitle ${LANG_ENGLISH} "Choose whether to make the sbctl command available in your terminal."
 LangString sbctlPathCheckbox ${LANG_ENGLISH} "Add sbctl to PATH (recommended)"
@@ -39,6 +45,8 @@ LangString sbctlPathCheckbox ${LANG_GERMAN} "sbctl zum PATH hinzufügen (empfohl
 LangString sbctlPathTitle ${LANG_RUSSIAN} "Инструмент командной строки"
 LangString sbctlPathSubtitle ${LANG_RUSSIAN} "Позволяет использовать команду sbctl в терминале."
 LangString sbctlPathCheckbox ${LANG_RUSSIAN} "Добавить sbctl в PATH (рекомендуется)"
+
+!macroend
 
 Function SbctlPathPage
   ${If} $PassiveMode = 1
