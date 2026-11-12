@@ -58,6 +58,9 @@ export const fr: Messages = {
   'runbar.changeDir': 'Changer',
   'runbar.pickDirTitle': 'Choisir le répertoire d’exécution',
   'runbar.dirChanged': 'Répertoire d’exécution mis à jour',
+  'runbar.args': 'Arguments',
+  'runbar.argsPlaceholder': 'ex. : --foo "bar baz"',
+  'runbar.argsTip': 'Ajoutés à la commande pour cette exécution uniquement ; non enregistrés dans le schéma',
 
   'dialog.schemeName': 'Nom du schéma',
   'dialog.namePlaceholder': 'ex. Python 3',

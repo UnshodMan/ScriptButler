@@ -58,6 +58,9 @@ export const en: Messages = {
   'runbar.changeDir': 'Change',
   'runbar.pickDirTitle': 'Choose run directory',
   'runbar.dirChanged': 'Run directory updated',
+  'runbar.args': 'Arguments',
+  'runbar.argsPlaceholder': 'e.g. --foo "bar baz"',
+  'runbar.argsTip': 'Appended to the command for this run only; not saved to the scheme',
 
   'dialog.schemeName': 'Scheme name',
   'dialog.namePlaceholder': 'e.g. Python 3',

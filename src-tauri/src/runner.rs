@@ -12,12 +12,13 @@ use crate::state::AppState;
 
 const EVENT: &str = "run://event";
 
-/// 启动脚本：解析方案与执行目录、拼接命令并 spawn 子进程
+/// 启动脚本：解析方案与执行目录、拼接命令（含临时参数）并 spawn 子进程
 pub fn start_run(
     app: AppHandle,
     state: &AppState,
     path: &str,
     scheme_id: &str,
+    args: Option<&str>,
 ) -> Result<String, ApiError> {
     let cmdline = {
         let entries = state.lock_entries();
@@ -30,7 +31,7 @@ pub fn start_run(
             .iter()
             .find(|s| s.id == scheme_id)
             .ok_or(ApiError::NotFound)?;
-        build_run_command(entry, scheme)
+        build_run_command(entry, scheme, args)
     };
 
     let mut cmd = shell_command(&cmdline);

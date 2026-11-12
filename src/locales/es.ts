@@ -58,6 +58,9 @@ export const es: Messages = {
   'runbar.changeDir': 'Cambiar',
   'runbar.pickDirTitle': 'Elegir directorio de ejecución',
   'runbar.dirChanged': 'Directorio de ejecución actualizado',
+  'runbar.args': 'Argumentos',
+  'runbar.argsPlaceholder': 'p. ej.: --foo "bar baz"',
+  'runbar.argsTip': 'Se añaden al comando solo para esta ejecución; no se guardan en el esquema',
 
   'dialog.schemeName': 'Nombre del esquema',
   'dialog.namePlaceholder': 'P. ej.: Python 3',

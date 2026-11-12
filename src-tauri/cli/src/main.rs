@@ -101,6 +101,9 @@ pub(crate) struct RefArgs {
 pub(crate) struct RunArgs {
     /// Script name (case-insensitive) or absolute path
     pub reference: String,
+    /// Extra arguments appended to the command (use `--` before hyphen values)
+    #[arg(value_name = "ARGS")]
+    pub args: Vec<String>,
     /// Scheme id or name
     #[arg(long)]
     pub scheme: Option<String>,

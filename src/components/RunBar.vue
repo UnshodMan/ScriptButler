@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  run: [scheme: RunScheme]
+  run: [scheme: RunScheme, args: string]
   stop: []
 }>()
 
@@ -39,6 +39,15 @@ const execDir = computed(() => props.entry.execDir ?? '')
 
 /** 当前方案实际执行的完整命令（含可能的 cd 切换目录） */
 const effectiveCommand = computed(() => props.entry.effectiveCommand ?? '')
+
+/** 本次运行的临时参数，仅追加到命令行末尾，不写回方案 */
+const extraArgs = ref('')
+
+/** 预览：实际命令 + 本次临时参数 */
+const previewCommand = computed(() => {
+  const args = extraArgs.value.trim()
+  return args ? `${effectiveCommand.value} ${args}` : effectiveCommand.value
+})
 
 /** 托管脚本：随时更改执行目录 */
 async function pickDir() {
@@ -130,7 +139,7 @@ function onRunClick() {
     toast(t('runbar.needScheme'), 'error')
     return
   }
-  emit('run', activeScheme.value)
+  emit('run', activeScheme.value, extraArgs.value.trim())
 }
 </script>
 
@@ -219,17 +228,36 @@ function onRunClick() {
       <button v-else class="run-btn" :title="t('action.run')" @click="onRunClick">▶</button>
     </div>
 
-    <div v-if="entry.managed" class="run-preview run-dir">
-      <span class="label">{{ t('runbar.execDir') }}</span>
-      <code :title="execDir">{{ execDir }}</code>
-      <button class="dir-btn" :title="t('runbar.changeDir')" @click="pickDir">
-        {{ t('runbar.changeDir') }}
-      </button>
-    </div>
+    <div v-if="entry.managed || activeScheme" class="run-meta">
+      <template v-if="entry.managed">
+        <span class="label">{{ t('runbar.execDir') }}</span>
+        <div class="value">
+          <code :title="execDir">{{ execDir }}</code>
+          <button class="dir-btn" :title="t('runbar.changeDir')" @click="pickDir">
+            {{ t('runbar.changeDir') }}
+          </button>
+        </div>
+      </template>
 
-    <div v-if="activeScheme" class="run-preview" :title="effectiveCommand">
-      <span class="label">{{ t('runbar.effectiveCommand') }}</span>
-      <code>{{ effectiveCommand }}</code>
+      <template v-if="activeScheme">
+        <span class="label">{{ t('runbar.args') }}</span>
+        <div class="value">
+          <input
+            v-model="extraArgs"
+            class="args-input"
+            type="text"
+            :placeholder="t('runbar.argsPlaceholder')"
+            :title="t('runbar.argsTip')"
+            spellcheck="false"
+            autocomplete="off"
+          />
+        </div>
+
+        <span class="label">{{ t('runbar.effectiveCommand') }}</span>
+        <div class="value" :title="previewCommand">
+          <code>{{ previewCommand }}</code>
+        </div>
+      </template>
     </div>
 
     <SchemeDialog

@@ -47,8 +47,8 @@ export const readScript = (path: string) => invoke<string>('read_script', { path
 export const writeScript = (path: string, content: string) =>
   invoke<void>('write_script', { path, content })
 
-export const startRun = (path: string, schemeId: string) =>
-  invoke<string>('start_run', { path, schemeId })
+export const startRun = (path: string, schemeId: string, args?: string) =>
+  invoke<string>('start_run', { path, schemeId, args: args?.trim() ? args : null })
 
 export const stopRun = (runId: string) => invoke<void>('stop_run', { runId })
 

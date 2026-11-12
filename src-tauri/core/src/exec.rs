@@ -12,8 +12,8 @@ pub fn dir_of(path: &str) -> Option<String> {
     }
 }
 
-/// 按平台为路径加引号：POSIX 用单引号，Windows cmd 用双引号
-fn quote_path(p: &str) -> String {
+/// 按平台为命令行参数加引号：POSIX 用单引号，Windows cmd 用双引号
+pub fn quote_arg(p: &str) -> String {
     if cfg!(windows) {
         format!("\"{}\"", p.replace('"', "\"\""))
     } else {
@@ -26,29 +26,35 @@ fn cd_prefix(dir: Option<&str>) -> String {
     match dir {
         Some(d) if !d.is_empty() => {
             if cfg!(windows) {
-                format!("cd /d {} && ", quote_path(d))
+                format!("cd /d {} && ", quote_arg(d))
             } else {
-                format!("cd {} && ", quote_path(d))
+                format!("cd {} && ", quote_arg(d))
             }
         }
         _ => String::new(),
     }
 }
 
-/// `{file}` 占位符替换为引号包裹的路径；无占位符时在末尾追加
+/// `{file}` 占位符替换为引号包裹的路径；无占位符时在末尾追加。
+/// `extra_args` 为运行时的临时参数（已按需引用），非空时追加到命令末尾。
 pub fn build_command(
     template: &str,
     file_path: &str,
     cd_to_script_dir: bool,
     exec_dir: Option<&str>,
+    extra_args: Option<&str>,
 ) -> String {
-    let quoted = quote_path(file_path);
+    let quoted = quote_arg(file_path);
     let trimmed = template.trim();
-    let cmd = if trimmed.contains("{file}") {
+    let mut cmd = if trimmed.contains("{file}") {
         trimmed.replace("{file}", &quoted)
     } else {
         format!("{trimmed} {quoted}")
     };
+    if let Some(args) = extra_args.map(str::trim).filter(|a| !a.is_empty()) {
+        cmd.push(' ');
+        cmd.push_str(args);
+    }
     let fallback = dir_of(file_path);
     let prefix = if cd_to_script_dir {
         cd_prefix(exec_dir.or(fallback.as_deref()))
@@ -80,6 +86,7 @@ pub fn to_view(entry: &ScriptEntry) -> EntryView {
             &entry.path,
             scheme.cd_to_script_dir,
             exec_dir.as_deref(),
+            None,
         )
     });
     EntryView {
@@ -89,14 +96,19 @@ pub fn to_view(entry: &ScriptEntry) -> EntryView {
     }
 }
 
-/// 按指定方案拼接实际运行的完整命令
-pub fn build_run_command(entry: &ScriptEntry, scheme: &RunScheme) -> String {
+/// 按指定方案拼接实际运行的完整命令；`extra_args` 为运行时临时参数
+pub fn build_run_command(
+    entry: &ScriptEntry,
+    scheme: &RunScheme,
+    extra_args: Option<&str>,
+) -> String {
     let exec_dir = entry_exec_dir(entry);
     build_command(
         &scheme.command,
         &entry.path,
         scheme.cd_to_script_dir,
         exec_dir.as_deref(),
+        extra_args,
     )
 }
 
@@ -155,12 +167,29 @@ mod tests {
     #[test]
     fn build_command_substitutes_placeholder_and_appends_path() {
         assert_eq!(
-            build_command("python3 {file}", "/tmp/a b.py", false, None),
+            build_command("python3 {file}", "/tmp/a b.py", false, None, None),
             "python3 '/tmp/a b.py'"
         );
         assert_eq!(
-            build_command("python3", "/tmp/a.py", false, None),
+            build_command("python3", "/tmp/a.py", false, None, None),
             "python3 '/tmp/a.py'"
+        );
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn build_command_appends_extra_args_at_the_end() {
+        assert_eq!(
+            build_command("python3 {file} --verbose", "/tmp/a.py", false, None, Some("--x 1")),
+            "python3 '/tmp/a.py' --verbose --x 1"
+        );
+        assert_eq!(
+            build_command("python3", "/tmp/a.py", false, None, Some("  ")),
+            "python3 '/tmp/a.py'"
+        );
+        assert_eq!(
+            build_command("python3", "/tmp/a.py", false, None, Some("'a b' c")),
+            "python3 '/tmp/a.py' 'a b' c"
         );
     }
 
@@ -168,12 +197,16 @@ mod tests {
     #[test]
     fn build_command_prepends_cd_when_enabled() {
         assert_eq!(
-            build_command("{file}", "/tmp/dir/a.py", true, None),
+            build_command("{file}", "/tmp/dir/a.py", true, None, None),
             "cd '/tmp/dir' && '/tmp/dir/a.py'"
         );
         assert_eq!(
-            build_command("{file}", "/tmp/a.py", true, Some("/custom")),
+            build_command("{file}", "/tmp/a.py", true, Some("/custom"), None),
             "cd '/custom' && '/tmp/a.py'"
+        );
+        assert_eq!(
+            build_command("{file}", "/tmp/a.py", true, Some("/custom"), Some("--x")),
+            "cd '/custom' && '/tmp/a.py' --x"
         );
     }
 

@@ -58,6 +58,9 @@ export const ja: Messages = {
   'runbar.changeDir': '変更',
   'runbar.pickDirTitle': '実行ディレクトリを選択',
   'runbar.dirChanged': '実行ディレクトリを更新しました',
+  'runbar.args': '引数',
+  'runbar.argsPlaceholder': '例：--foo "bar baz"',
+  'runbar.argsTip': '今回の実行時のみコマンド末尾に追加され、スキームには保存されません',
 
   'dialog.schemeName': 'スキーム名',
   'dialog.namePlaceholder': '例：Python3 実行',

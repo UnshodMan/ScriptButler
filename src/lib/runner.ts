@@ -37,9 +37,9 @@ export function ensureRunListener(): Promise<UnlistenFn> {
   return listener
 }
 
-export async function startRun(path: string, schemeId: string): Promise<string> {
+export async function startRun(path: string, schemeId: string, args?: string): Promise<string> {
   await ensureRunListener()
-  return api.startRun(path, schemeId)
+  return api.startRun(path, schemeId, args)
 }
 
 export async function stopRun(runId: string): Promise<void> {

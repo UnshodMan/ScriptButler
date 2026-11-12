@@ -58,6 +58,9 @@ export const de: Messages = {
   'runbar.changeDir': 'Ändern',
   'runbar.pickDirTitle': 'Ausführungsverzeichnis wählen',
   'runbar.dirChanged': 'Ausführungsverzeichnis aktualisiert',
+  'runbar.args': 'Argumente',
+  'runbar.argsPlaceholder': 'z. B.: --foo "bar baz"',
+  'runbar.argsTip': 'Wird nur für diesen Lauf an das Kommando angehängt und nicht im Schema gespeichert',
 
   'dialog.schemeName': 'Schemaname',
   'dialog.namePlaceholder': 'z. B. Python 3',

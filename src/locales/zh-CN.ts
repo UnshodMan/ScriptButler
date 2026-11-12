@@ -56,6 +56,9 @@ export const zhCN = {
   'runbar.changeDir': '更改',
   'runbar.pickDirTitle': '选择执行目录',
   'runbar.dirChanged': '执行目录已更新',
+  'runbar.args': '参数',
+  'runbar.argsPlaceholder': '例如：--foo "bar baz"',
+  'runbar.argsTip': '仅本次运行追加到命令末尾，不会保存到方案',
 
   'dialog.schemeName': '方案名称',
   'dialog.namePlaceholder': '例如：Python3 运行',

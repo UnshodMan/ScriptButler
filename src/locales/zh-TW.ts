@@ -58,6 +58,9 @@ export const zhTW: Messages = {
   'runbar.changeDir': '變更',
   'runbar.pickDirTitle': '選擇執行目錄',
   'runbar.dirChanged': '執行目錄已更新',
+  'runbar.args': '參數',
+  'runbar.argsPlaceholder': '例如：--foo "bar baz"',
+  'runbar.argsTip': '僅本次執行附加到命令結尾，不會儲存到方案',
 
   'dialog.schemeName': '方案名稱',
   'dialog.namePlaceholder': '例如：Python3 執行',

@@ -40,6 +40,7 @@ Use `--name`, `--scheme-name`, and `--workdir` to control the display name, defa
 
 - `sbctl run <name|path> --json` runs the active scheme and returns `data.exitCode`, `data.stdout`, and `data.stderr`.
 - `sbctl run <name|path> --scheme <id|name> --json` runs a specific scheme.
+- Append trailing arguments to pass them only for this run: `sbctl run <name|path> arg1 arg2 --json`. Arguments that start with `-` go after `--`, e.g. `sbctl run <name|path> -- --verbose`.
 - Output is collected; for long-running scripts prefer the desktop app's live output panel.
 
 ## Search

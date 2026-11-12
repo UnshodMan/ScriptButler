@@ -810,22 +810,31 @@ input:focus {
   color: #fff;
 }
 
-/* 当前方案实际执行的完整命令（含 cd 切换目录），让运行方案显式可见 */
-.run-preview {
-  display: flex;
+/* 运行区元信息（执行目录/临时参数/实际命令）：label 列宽取最长文案并右对齐 */
+.run-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
-  gap: 6px;
+  column-gap: 6px;
+  row-gap: 6px;
   min-width: 0;
   font-size: 12px;
   color: var(--muted);
 }
 
-.run-preview .label {
-  flex-shrink: 0;
+.run-meta .label {
+  text-align: right;
+}
+
+.run-meta .value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
 }
 
 /* 托管脚本执行目录行右侧的「更改」按钮：弱化为文字链，避免与上方操作按钮混淆 */
-.run-preview .dir-btn {
+.run-meta .dir-btn {
   flex-shrink: 0;
   padding: 0;
   font-size: 12px;
@@ -838,14 +847,14 @@ input:focus {
   text-underline-offset: 3px;
 }
 
-.run-preview .dir-btn:hover {
+.run-meta .dir-btn:hover {
   color: var(--accent-hover);
   background: transparent;
   border-color: transparent;
 }
 
 /* 只给命令/路径本身做终端式内嵌底色，label 保持原样 */
-.run-preview code {
+.run-meta code {
   flex: 1;
   min-width: 0;
   padding: 3px 10px;
@@ -859,6 +868,28 @@ input:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   user-select: text;
+}
+
+/* 临时参数输入框：与命令预览保持一致的终端式外观 */
+.run-meta .args-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 10px;
+  font-family: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.run-meta .args-input:focus {
+  border-color: var(--accent);
+}
+
+.run-meta .args-input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
 }
 
 .editor-host {

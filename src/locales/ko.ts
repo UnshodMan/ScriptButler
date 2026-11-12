@@ -58,6 +58,9 @@ export const ko: Messages = {
   'runbar.changeDir': '변경',
   'runbar.pickDirTitle': '실행 디렉터리 선택',
   'runbar.dirChanged': '실행 디렉터리가 업데이트되었습니다',
+  'runbar.args': '인수',
+  'runbar.argsPlaceholder': '예: --foo "bar baz"',
+  'runbar.argsTip': '이번 실행에만 명령 끝에 추가되며 스킴에 저장되지 않습니다',
 
   'dialog.schemeName': '스킴 이름',
   'dialog.namePlaceholder': '예: Python3 실행',

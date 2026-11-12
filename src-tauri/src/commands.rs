@@ -209,8 +209,9 @@ pub fn start_run(
     state: State<AppState>,
     path: String,
     scheme_id: String,
+    args: Option<String>,
 ) -> Result<String, ApiError> {
-    runner::start_run(app, &state, &path, &scheme_id)
+    runner::start_run(app, &state, &path, &scheme_id, args.as_deref())
 }
 
 #[tauri::command]

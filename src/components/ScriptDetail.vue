@@ -38,10 +38,10 @@ async function save() {
   }
 }
 
-async function run(scheme: RunScheme) {
+async function run(scheme: RunScheme, args = '') {
   await store.markUsed(props.path)
   try {
-    runId.value = await startRun(props.path, scheme.id)
+    runId.value = await startRun(props.path, scheme.id, args)
   } catch (e) {
     toast(api.errorText(e), 'error')
   }

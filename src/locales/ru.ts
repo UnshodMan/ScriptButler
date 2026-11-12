@@ -58,6 +58,9 @@ export const ru: Messages = {
   'runbar.changeDir': 'Изменить',
   'runbar.pickDirTitle': 'Выбрать каталог выполнения',
   'runbar.dirChanged': 'Каталог выполнения обновлён',
+  'runbar.args': 'Аргументы',
+  'runbar.argsPlaceholder': 'напр.: --foo "bar baz"',
+  'runbar.argsTip': 'Добавляются в конец команды только для этого запуска и не сохраняются в схеме',
 
   'dialog.schemeName': 'Название схемы',
   'dialog.namePlaceholder': 'напр. Python 3',

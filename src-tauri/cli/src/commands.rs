@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use serde_json::json;
-use scriptbutler_core::exec::{build_run_command, shell_command, to_view};
+use scriptbutler_core::exec::{build_run_command, quote_arg, shell_command, to_view};
 use scriptbutler_core::models::{EntryView, RunScheme, ScriptEntry};
 use scriptbutler_core::ops::{self, CoreError, ManageOptions};
 use scriptbutler_core::search;
@@ -305,10 +305,22 @@ fn cmd_search(keyword: &str, content: bool, json: bool) -> Result<i32, CliError>
 fn cmd_run(args: RunArgs, json: bool) -> Result<i32, CliError> {
     let mut store = Store::load()?;
     let idx = resolve::resolve_index(&store.entries, &args.reference)?;
+    // CLI 参数已经过 shell 解析，重新引用后拼进命令行
+    let extra_args = if args.args.is_empty() {
+        None
+    } else {
+        Some(
+            args.args
+                .iter()
+                .map(|arg| quote_arg(arg))
+                .collect::<Vec<_>>()
+                .join(" "),
+        )
+    };
     let cmdline = {
         let entry = &store.entries[idx];
         let scheme = resolve::resolve_scheme(entry, args.scheme.as_deref())?;
-        build_run_command(entry, scheme)
+        build_run_command(entry, scheme, extra_args.as_deref())
     };
     let entry_path = store.entries[idx].path.clone();
 
