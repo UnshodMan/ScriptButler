@@ -3,14 +3,16 @@
 
   var STORAGE_KEY = "scriptbutler-docs-lang";
 
+  var GITHUB_DOCS_BASE = "https://github.com/UnshodMan/ScriptButler/blob/main/";
+
   var docLinks = {
     zh: {
-      readme: "README.zh-CN.md",
-      cli: "README.zh-CN.md#agent-集成cli--skill"
+      readme: GITHUB_DOCS_BASE + "docs/README.zh-CN.md",
+      cli: GITHUB_DOCS_BASE + "docs/README.zh-CN.md#agent-集成cli--skill"
     },
     en: {
-      readme: "README.md",
-      cli: "README.md#agent-integration-cli--skill"
+      readme: GITHUB_DOCS_BASE + "README.md",
+      cli: GITHUB_DOCS_BASE + "README.md#agent-integration-cli--skill"
     }
   };
 
