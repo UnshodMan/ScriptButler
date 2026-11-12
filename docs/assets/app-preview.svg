@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 640" width="920" height="640" role="img" aria-label="ScriptButler 主界面示意图">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b1e27"/>
+      <stop offset="1" stop-color="#101116"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f8cff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#4f8cff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="run" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6ba0ff"/>
+      <stop offset="1" stop-color="#4f8cff"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#23262e"/>
+      <stop offset="1" stop-color="#1e2027"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="920" height="640" fill="none"/>
+  <ellipse cx="700" cy="120" rx="260" ry="160" fill="url(#glow)" filter="url(#soft)"/>
+  <ellipse cx="180" cy="560" rx="240" ry="140" fill="#4f8cff" opacity=".06" filter="url(#soft)"/>
+
+  <!-- 窗口 -->
+  <g filter="url(#shadow)">
+    <rect x="40" y="34" width="840" height="572" rx="18" fill="url(#bg)" stroke="#2e323c" stroke-width="1.5"/>
+
+    <!-- 标题栏 -->
+    <path d="M40 52a18 18 0 0 1 18-18h804a18 18 0 0 1 18 18v26H40z" fill="#1a1c22"/>
+    <line x1="40" y1="78" x2="880" y2="78" stroke="#2e323c" stroke-width="1"/>
+    <circle cx="68" cy="56" r="6" fill="#ff5f57"/>
+    <circle cx="88" cy="56" r="6" fill="#febc2e"/>
+    <circle cx="108" cy="56" r="6" fill="#28c840"/>
+    <text x="460" y="61" text-anchor="middle" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="13" fill="#98a0b0">ScriptButler</text>
+
+    <!-- 应用头部 -->
+    <text x="72" y="120" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="20" font-weight="700" fill="#e8eaf0">我的脚本</text>
+    <text x="72" y="143" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="12" fill="#98a0b0">按最近使用排序 · 共 12 个脚本</text>
+
+    <!-- 搜索框 -->
+    <rect x="280" y="103" width="350" height="36" rx="9" fill="#15161a" stroke="#2e323c"/>
+    <circle cx="301" cy="121" r="5.5" fill="none" stroke="#98a0b0" stroke-width="1.8"/>
+    <line x1="305.5" y1="125.5" x2="310" y2="130" stroke="#98a0b0" stroke-width="1.8" stroke-linecap="round"/>
+    <text x="322" y="126" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="12.5" fill="#6b7385">搜索文件名、目录或内容…</text>
+
+    <!-- 添加脚本 -->
+    <rect x="648" y="103" width="120" height="36" rx="9" fill="#23262e" stroke="#3a3f4c"/>
+    <text x="708" y="126" text-anchor="middle" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="12.5" fill="#e8eaf0">＋ 添加脚本</text>
+
+    <!-- 语言切换 -->
+    <rect x="784" y="103" width="64" height="36" rx="9" fill="#23262e" stroke="#3a3f4c"/>
+    <text x="816" y="126" text-anchor="middle" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="12" fill="#98a0b0">简体</text>
+
+    <!-- 脚本卡片 1 -->
+    <g>
+      <rect x="72" y="170" width="776" height="106" rx="12" fill="url(#card)" stroke="#3a4a68" stroke-width="1.5"/>
+      <rect x="92" y="190" width="72" height="22" rx="6" fill="#2b3a55"/>
+      <text x="128" y="205" text-anchor="middle" font-family="'SFMono-Regular', Consolas, monospace" font-size="10.5" font-weight="700" fill="#7fb0ff" letter-spacing=".6">PYTHON</text>
+      <text x="92" y="238" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="15.5" font-weight="600" fill="#e8eaf0">backup-photos.py</text>
+      <text x="92" y="259" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="11.5" fill="#98a0b0">~/dev/tools · 2 分钟前 · 使用 12 次</text>
+      <rect x="700" y="201" width="128" height="38" rx="9" fill="url(#run)"/>
+      <path d="M722 213l11 7-11 7z" fill="#fff"/>
+      <text x="748" y="226" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="13" font-weight="600" fill="#fff">运行</text>
+      <text x="700" y="258" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="10.5" fill="#6b7385">cd ~/dev/tools &amp;&amp; python {file}</text>
+      <circle cx="676" cy="220" r="3" fill="#3fb950"/>
+    </g>
+
+    <!-- 脚本卡片 2 -->
+    <g>
+      <rect x="72" y="290" width="776" height="106" rx="12" fill="url(#card)" stroke="#2e323c"/>
+      <rect x="92" y="310" width="78" height="22" rx="6" fill="#2d3f33"/>
+      <text x="131" y="325" text-anchor="middle" font-family="'SFMono-Regular', Consolas, monospace" font-size="10.5" font-weight="700" fill="#7ee2a8" letter-spacing=".6">SHELL</text>
+      <text x="92" y="358" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="15.5" font-weight="600" fill="#e8eaf0">deploy-static-site.sh</text>
+      <text x="92" y="379" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="11.5" fill="#98a0b0">~/work/site · 昨天 · 使用 5 次</text>
+      <rect x="700" y="321" width="128" height="38" rx="9" fill="#23262e" stroke="#3a3f4c"/>
+      <path d="M722 333l11 7-11 7z" fill="#98a0b0"/>
+      <text x="748" y="346" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="13" font-weight="600" fill="#e8eaf0">运行</text>
+      <text x="700" y="378" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="10.5" fill="#6b7385">cd ~/work/site &amp;&amp; bash {file}</text>
+      <rect x="652" y="333" width="24" height="24" rx="6" fill="none" stroke="#d29922" stroke-width="1.5"/>
+      <rect x="658" y="339" width="12" height="12" rx="2" fill="none" stroke="#d29922" stroke-width="1.5"/>
+    </g>
+
+    <!-- 脚本卡片 3 -->
+    <g>
+      <rect x="72" y="410" width="776" height="106" rx="12" fill="url(#card)" stroke="#2e323c"/>
+      <rect x="92" y="430" width="96" height="22" rx="6" fill="#4a3a24"/>
+      <text x="140" y="445" text-anchor="middle" font-family="'SFMono-Regular', Consolas, monospace" font-size="10.5" font-weight="700" fill="#f0c674" letter-spacing=".6">JAVASCRIPT</text>
+      <text x="92" y="478" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="15.5" font-weight="600" fill="#e8eaf0">clean-cache.mjs</text>
+      <text x="92" y="499" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="11.5" fill="#98a0b0">~/dev/scripts · 3 天前 · 使用 2 次</text>
+      <rect x="700" y="441" width="128" height="38" rx="9" fill="#23262e" stroke="#3a3f4c"/>
+      <path d="M722 453l11 7-11 7z" fill="#98a0b0"/>
+      <text x="748" y="466" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="13" font-weight="600" fill="#e8eaf0">运行</text>
+      <text x="700" y="498" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="10.5" fill="#6b7385">node {file}</text>
+    </g>
+
+    <!-- 底部提示 -->
+    <text x="72" y="556" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="11.5" fill="#6b7385">拖拽脚本文件到窗口即可导入</text>
+    <rect x="72" y="570" width="776" height="1" fill="#2e323c"/>
+  </g>
+
+  <!-- 浮动输出面板 -->
+  <g filter="url(#shadow)">
+    <rect x="530" y="430" width="342" height="176" rx="12" fill="#101114" stroke="#2e323c" stroke-width="1.2"/>
+    <path d="M530 442a12 12 0 0 1 12-12h318a12 12 0 0 1 12 12v22H530z" fill="#1a1c22"/>
+    <text x="548" y="451" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="11.5" font-weight="600" fill="#98a0b0">运行输出</text>
+    <circle cx="842" cy="443" r="4" fill="#3fb950"/>
+    <text x="548" y="489" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#98a0b0">$ python backup-photos.py</text>
+    <text x="548" y="511" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#e8eaf0">Scanning ~/Pictures …</text>
+    <text x="548" y="533" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#3fb950">✓ 128 files backed up</text>
+    <text x="548" y="555" font-family="'SFMono-Regular', Consolas, monospace" font-size="11" fill="#ff8580">! 2 files skipped (locked)</text>
+    <text x="548" y="583" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="10.5" fill="#6b7385">退出码 0 · 耗时 1.8s</text>
+  </g>
+</svg>

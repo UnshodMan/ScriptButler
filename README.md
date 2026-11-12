@@ -1,6 +1,6 @@
 # ScriptButler
 
-> **提示**：中文版请见 [doc/README.zh-CN.md](doc/README.zh-CN.md)。
+> **提示**：中文版请见 [docs/README.zh-CN.md](docs/README.zh-CN.md)。
 
 A desktop script management app built with **Tauri v2 + Vue 3 + TypeScript**. It keeps your local scripts organized as cards and supports drag-and-drop import, sorting by recent use, syntax-highlighted editing, and customizable, auto-saved run command schemes.
 

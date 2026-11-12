@@ -2,4 +2,6 @@
 
 进行开发前需要了解项目整体结构、功能或使用方式，应当先阅读项目根目录的`README.md`。完成修改后，应评估本次变更是否需要调整或补充 `README.md`，确保文档与实际情况保持一致。
 
-若更新了README.md，需要同步给`doc/README.zh-CN.md`，从而保持文档的一致性。
+若更新了README.md，需要同步给`docs/README.zh-CN.md`，从而保持文档的一致性。
+
+`docs/index.html`不需要同步更新。

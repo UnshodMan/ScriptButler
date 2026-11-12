@@ -101,9 +101,8 @@ jobs:
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
           releaseName: ScriptButler v__VERSION__
           releaseBody: |
-            Download the desktop installer for your platform below.
-
-            Standalone `sbctl` CLI binaries are attached as `sbctl-linux-x86_64`, `sbctl-windows-x86_64.exe`, `sbctl-macos-aarch64`, and `sbctl-macos-x86_64`.
+            Download the desktop installer for your platform below. Accompanied by an independent sbctl command-line interface (CLI) binary file.
+            请在下面下载适用于您平台的桌面安装程序。附带独立的sbctl命令行界面（CLI）二进制文件。
           releaseDraft: true
           prerelease: false
           uploadWorkflowArtifacts: true
