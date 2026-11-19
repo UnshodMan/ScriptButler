@@ -14,8 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  create-release:
+    name: create-draft-release
+    runs-on: ubuntu-22.04
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+    steps:
+      - name: Get or create draft release
+        id: release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_id=$(gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --json databaseId -q .databaseId 2>/dev/null || true)
+          if [ -z "$release_id" ]; then
+            gh release create "${GITHUB_REF_NAME}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --draft \
+              --title "ScriptButler ${GITHUB_REF_NAME}" \
+              --notes "Download the desktop installer for your platform below. Accompanied by an independent sbctl command-line interface (CLI) binary file.
+          请在下面下载适用于您平台的桌面安装程序。附带独立的sbctl命令行界面（CLI）二进制文件。"
+            release_id=$(gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --json databaseId -q .databaseId)
+          fi
+          echo "release_id=${release_id}" >> "$GITHUB_OUTPUT"
+
   build:
     name: ${{ matrix.name }}
+    needs: create-release
     runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
@@ -98,13 +123,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }}
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          releaseName: ScriptButler v__VERSION__
-          releaseBody: |
-            Download the desktop installer for your platform below. Accompanied by an independent sbctl command-line interface (CLI) binary file.
-            请在下面下载适用于您平台的桌面安装程序。附带独立的sbctl命令行界面（CLI）二进制文件。
-          releaseDraft: true
-          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           uploadWorkflowArtifacts: true
 
       - name: Attach CLI binary to release
