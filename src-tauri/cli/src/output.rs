@@ -8,10 +8,12 @@ pub enum CliError {
     NotFound(String),
     Ambiguous(Vec<String>),
     NotFile(String),
+    NotArchived(String),
     InvalidData(String),
     Io(String),
     SpawnFailed(String),
     ManageFailed(String),
+    DeleteFailed(String),
 }
 
 impl CliError {
@@ -20,16 +22,21 @@ impl CliError {
             CliError::NotFound(_) => "not_found",
             CliError::Ambiguous(_) => "ambiguous",
             CliError::NotFile(_) => "not_file",
+            CliError::NotArchived(_) => "not_archived",
             CliError::InvalidData(_) => "invalid_data",
             CliError::Io(_) => "io_error",
             CliError::SpawnFailed(_) => "spawn_failed",
             CliError::ManageFailed(_) => "manage_failed",
+            CliError::DeleteFailed(_) => "delete_failed",
         }
     }
 
     pub fn exit_code(&self) -> i32 {
         match self {
-            CliError::NotFound(_) | CliError::Ambiguous(_) | CliError::NotFile(_) => 2,
+            CliError::NotFound(_)
+            | CliError::Ambiguous(_)
+            | CliError::NotFile(_)
+            | CliError::NotArchived(_) => 2,
             CliError::InvalidData(_) => 3,
             _ => 1,
         }
@@ -42,10 +49,12 @@ impl CliError {
                 format!("ambiguous reference; candidates:\n  {}", paths.join("\n  "))
             }
             CliError::NotFile(detail) => detail.clone(),
+            CliError::NotArchived(detail) => detail.clone(),
             CliError::InvalidData(detail) => format!("invalid scripts.json: {detail}"),
             CliError::Io(detail) => detail.clone(),
             CliError::SpawnFailed(detail) => format!("failed to start script: {detail}"),
             CliError::ManageFailed(detail) => format!("failed to manage script: {detail}"),
+            CliError::DeleteFailed(detail) => format!("failed to delete script file: {detail}"),
         }
     }
 }
@@ -75,7 +84,13 @@ pub fn print_json(value: serde_json::Value) {
 
 pub fn print_entry(view: &EntryView) {
     let entry = &view.entry;
-    let kind = if entry.is_managed() { "managed" } else { "linked" };
+    let kind = if entry.is_archived() {
+        "archived"
+    } else if entry.is_managed() {
+        "managed"
+    } else {
+        "linked"
+    };
     println!("{}\t{}\t{}\t{}", entry.name, entry.lang, kind, entry.path);
     if let Some(dir) = &view.exec_dir {
         println!("  dir: {dir}");

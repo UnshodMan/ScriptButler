@@ -11,7 +11,11 @@ export const addScript = (path: string, defaultSchemeName: string) =>
 
 export const manageScript = (path: string) => invoke<ScriptList>('manage_script', { path })
 
-export const removeScript = (path: string) => invoke<ScriptList>('remove_script', { path })
+export const archiveScript = (path: string) => invoke<ScriptList>('archive_script', { path })
+
+export const restoreScript = (path: string) => invoke<ScriptList>('restore_script', { path })
+
+export const deleteScript = (path: string) => invoke<ScriptList>('delete_script', { path })
 
 export const setWorkDir = (path: string, workDir: string) =>
   invoke<ScriptList>('set_work_dir', { path, workDir })
@@ -66,8 +70,12 @@ export function errorText(e: unknown): string {
       return t('store.notFound')
     case 'not_file':
       return t('store.notFile')
+    case 'not_archived':
+      return t('store.notArchived')
     case 'manage_failed':
       return t('store.manageFailed', { err: err.detail ?? '' })
+    case 'delete_failed':
+      return t('store.deleteFailed', { err: err.detail ?? '' })
     case 'read_failed':
       return t('detail.readFailed', { err: err.detail ?? '' })
     case 'write_failed':

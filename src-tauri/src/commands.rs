@@ -1,7 +1,7 @@
 use tauri::{AppHandle, State};
 
 use scriptbutler_core::exec::to_view;
-use scriptbutler_core::ops::{self, ManageOptions};
+use scriptbutler_core::ops::{self, DeleteOutcome, ManageOptions};
 use scriptbutler_core::search;
 
 use crate::models::{ApiError, ListResponse, SearchGroups};
@@ -56,16 +56,45 @@ pub fn manage_script(state: State<AppState>, path: String) -> Result<ListRespons
     })
 }
 
+/// 移除：条目进入归档库，脚本文件保持不变
 #[tauri::command]
-pub fn remove_script(state: State<AppState>, path: String) -> ListResponse {
+pub fn archive_script(state: State<AppState>, path: String) -> ListResponse {
     let mut entries = state.lock_entries();
-    if ops::remove_entry(&mut entries, &path) {
+    if ops::archive_entry(&mut entries, &path) {
         state.save_entries(&entries);
     }
     ListResponse {
         entries: ops::sorted_views(&entries),
         changed: None,
     }
+}
+
+/// 从归档库恢复到脚本库
+#[tauri::command]
+pub fn restore_script(state: State<AppState>, path: String) -> ListResponse {
+    let mut entries = state.lock_entries();
+    if ops::restore_entry(&mut entries, &path) {
+        state.save_entries(&entries);
+    }
+    ListResponse {
+        entries: ops::sorted_views(&entries),
+        changed: None,
+    }
+}
+
+/// 永久删除已归档条目及其脚本文件（托管条目只删除托管副本）
+#[tauri::command]
+pub fn delete_script(state: State<AppState>, path: String) -> Result<ListResponse, ApiError> {
+    let mut entries = state.lock_entries();
+    match ops::delete_entry_file(&mut entries, &path)? {
+        DeleteOutcome::Deleted => state.save_entries(&entries),
+        DeleteOutcome::NotFound => {}
+        DeleteOutcome::NotArchived => return Err(ApiError::NotArchived),
+    }
+    Ok(ListResponse {
+        entries: ops::sorted_views(&entries),
+        changed: None,
+    })
 }
 
 /// 托管脚本：修改执行目录（随时可改，立即持久化）

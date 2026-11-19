@@ -573,6 +573,104 @@ input:focus {
   font-size: 40px;
 }
 
+/* ---------- 归档卡片 ---------- */
+
+/* 归档卡片不可打开详情，保持稳定的静态外观 */
+.card.archived {
+  cursor: default;
+}
+
+.card.archived:hover {
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+/* 归档标识：替代运行按钮展示当前视图状态 */
+.card .archive-tag {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 3px 9px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+/* 归档 / 恢复：弱化的图标操作，与托管按钮尺寸一致 */
+.card .archive-btn,
+.card .restore-btn {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+  border-radius: 7px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.card .archive-btn:hover {
+  color: var(--accent-hover);
+  background: rgba(79, 140, 255, 0.12);
+  border-color: transparent;
+}
+
+.card .restore-btn:hover {
+  color: var(--ok);
+  background: rgba(63, 185, 80, 0.12);
+  border-color: transparent;
+}
+
+/* ---------- 底栏 ---------- */
+
+.grid-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 7px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.grid-footer .archive-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+.grid-footer .archive-tab:hover {
+  color: var(--text);
+  background: var(--panel-2);
+  border-color: transparent;
+}
+
+.grid-footer .archive-tab.active {
+  color: var(--accent-hover);
+  background: rgba(79, 140, 255, 0.12);
+  border-color: rgba(79, 140, 255, 0.3);
+}
+
+.grid-footer .tab-count {
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- 详情页 ---------- */
 
 .detail-page {

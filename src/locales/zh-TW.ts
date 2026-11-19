@@ -12,9 +12,15 @@ export const zhTW: Messages = {
   'action.back': '返回',
   'action.addScript': '新增腳本',
 
+  'archive.tab': '歸檔',
+  'archive.badge': '已歸檔',
+
   'grid.count': '{n} 個腳本',
+  'grid.countArchived': '{n} 個已歸檔腳本',
   'grid.empty.title': '還沒有腳本',
   'grid.empty.hint': '將腳本檔案拖曳到視窗中，或點擊右上角「新增腳本」',
+  'grid.empty.archivedTitle': '歸檔庫是空的',
+  'grid.empty.archivedHint': '從腳本庫移除的腳本會保存在這裡，可隨時還原或永久刪除。',
   'grid.pickTitle': '新增腳本',
 
   'search.placeholder': '搜尋檔名、目錄或內容…',
@@ -26,9 +32,13 @@ export const zhTW: Messages = {
 
   'card.lastUsed': '最近使用：{time}',
   'card.useCount': '使用 {n} 次',
-  'card.removeTitle': '移除腳本',
-  'card.removeBtn': '移除',
-  'card.removeConfirm': '從清單中移除「{name}」？（不會刪除檔案本身）',
+  'card.archiveTitle': '歸檔腳本',
+  'card.archiveBtn': '歸檔',
+  'card.archiveConfirm': '將「{name}」移入歸檔庫？（不會刪除腳本檔案）',
+  'card.deleteTitle': '永久刪除',
+  'card.deleteBtn': '刪除',
+  'card.deleteConfirm': '永久刪除「{name}」？將同時刪除腳本檔案：{path}。此操作無法復原。',
+  'card.restoreBtn': '還原',
   'card.noScheme': '暫無執行方案，點擊卡片進入詳情設定',
   'card.manageBtn': '託管',
   'card.manageTip': '將腳本複製到 ScriptButler 的託管目錄',
@@ -81,7 +91,9 @@ export const zhTW: Messages = {
 
   'store.notFile': '僅支援新增檔案，已忽略目錄',
   'store.notFound': '檔案不存在或無法存取',
+  'store.notArchived': '腳本尚未歸檔，無法永久刪除',
   'store.manageFailed': '託管失敗：{err}',
+  'store.deleteFailed': '刪除腳本檔案失敗：{err}',
 
   'time.justNow': '剛剛',
   'time.minutesAgo': '{n} 分鐘前',

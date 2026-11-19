@@ -12,9 +12,15 @@ export const ru: Messages = {
   'action.back': 'Назад',
   'action.addScript': 'Добавить скрипт',
 
+  'archive.tab': 'Архив',
+  'archive.badge': 'В архиве',
+
   'grid.count': 'Скриптов: {n}',
+  'grid.countArchived': 'Архивных скриптов: {n}',
   'grid.empty.title': 'Скриптов пока нет',
   'grid.empty.hint': 'Перетащите файлы скриптов в окно или нажмите «Добавить скрипт» в правом верхнем углу',
+  'grid.empty.archivedTitle': 'Архив пуст',
+  'grid.empty.archivedHint': 'Удалённые из библиотеки скрипты сохраняются здесь; их можно восстановить или удалить навсегда.',
   'grid.pickTitle': 'Добавить скрипт',
 
   'search.placeholder': 'Поиск по имени файла, каталогу или содержимому…',
@@ -26,9 +32,13 @@ export const ru: Messages = {
 
   'card.lastUsed': 'Последнее использование: {time}',
   'card.useCount': 'Использований: {n}',
-  'card.removeTitle': 'Убрать скрипт',
-  'card.removeBtn': 'Убрать',
-  'card.removeConfirm': 'Убрать «{name}» из списка? (Сам файл не будет удалён)',
+  'card.archiveTitle': 'Архивировать скрипт',
+  'card.archiveBtn': 'В архив',
+  'card.archiveConfirm': 'Переместить «{name}» в архив? (Файл скрипта не будет удалён)',
+  'card.deleteTitle': 'Удалить навсегда',
+  'card.deleteBtn': 'Удалить',
+  'card.deleteConfirm': 'Удалить «{name}» навсегда? Файл скрипта ({path}) также будет удалён. Это действие нельзя отменить.',
+  'card.restoreBtn': 'Восстановить',
   'card.noScheme': 'Схемы запуска нет — нажмите на карточку и настройте её в деталях',
   'card.manageBtn': 'Управлять',
   'card.manageTip': 'Скопировать скрипт в управляемый каталог ScriptButler',
@@ -81,7 +91,9 @@ export const ru: Messages = {
 
   'store.notFile': 'Можно добавлять только файлы; каталог проигнорирован',
   'store.notFound': 'Файл не существует или недоступен',
+  'store.notArchived': 'Скрипт не находится в архиве; удалить навсегда нельзя',
   'store.manageFailed': 'Не удалось взять скрипт под управление: {err}',
+  'store.deleteFailed': 'Не удалось удалить файл скрипта: {err}',
 
   'time.justNow': 'только что',
   'time.minutesAgo': '{n} мин назад',

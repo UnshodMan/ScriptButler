@@ -4,6 +4,10 @@ pub fn default_true() -> bool {
     true
 }
 
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RunScheme {
@@ -32,11 +36,18 @@ pub struct ScriptEntry {
     pub source_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub work_dir: Option<String>,
+    /// 已归档：从脚本库移入归档库，可恢复或永久删除
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub archived: bool,
 }
 
 impl ScriptEntry {
     pub fn is_managed(&self) -> bool {
         self.managed.unwrap_or(false)
+    }
+
+    pub fn is_archived(&self) -> bool {
+        self.archived
     }
 
     /// 激活方案：按 id 命中，否则回退首个方案

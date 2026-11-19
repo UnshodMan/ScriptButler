@@ -46,8 +46,21 @@ export const useScriptsStore = defineStore('scripts', {
     async setWorkDir(path: string, workDir: string) {
       this.entries = (await api.setWorkDir(path, workDir)).entries
     },
-    async remove(path: string) {
-      this.entries = (await api.removeScript(path)).entries
+    /** 移除：条目进入归档库，脚本文件保持不变 */
+    async archive(path: string) {
+      this.entries = (await api.archiveScript(path)).entries
+    },
+    async restore(path: string) {
+      this.entries = (await api.restoreScript(path)).entries
+    },
+    /** 永久删除已归档条目及其脚本文件 */
+    async deleteArchived(path: string): Promise<AddResult> {
+      try {
+        this.entries = (await api.deleteScript(path)).entries
+        return { ok: true }
+      } catch (e) {
+        return { ok: false, message: api.errorText(e) }
+      }
     },
     async markUsed(path: string) {
       this.entries = (await api.markUsed(path)).entries

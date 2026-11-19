@@ -12,9 +12,15 @@ export const fr: Messages = {
   'action.back': 'Retour',
   'action.addScript': 'Ajouter un script',
 
+  'archive.tab': 'Archives',
+  'archive.badge': 'Archivé',
+
   'grid.count': '{n} scripts',
+  'grid.countArchived': '{n} scripts archivés',
   'grid.empty.title': 'Aucun script pour le moment',
   'grid.empty.hint': 'Glissez des fichiers de script dans la fenêtre ou cliquez sur « Ajouter un script » en haut à droite',
+  'grid.empty.archivedTitle': 'Les archives sont vides',
+  'grid.empty.archivedHint': 'Les scripts retirés de la bibliothèque sont conservés ici ; vous pouvez les restaurer ou les supprimer définitivement.',
   'grid.pickTitle': 'Ajouter un script',
 
   'search.placeholder': 'Rechercher par nom, dossier ou contenu…',
@@ -26,9 +32,13 @@ export const fr: Messages = {
 
   'card.lastUsed': 'Dernière utilisation : {time}',
   'card.useCount': 'Utilisé {n} fois',
-  'card.removeTitle': 'Retirer le script',
-  'card.removeBtn': 'Retirer',
-  'card.removeConfirm': 'Retirer « {name} » de la liste ? (Le fichier lui-même ne sera pas supprimé)',
+  'card.archiveTitle': 'Archiver le script',
+  'card.archiveBtn': 'Archiver',
+  'card.archiveConfirm': 'Déplacer « {name} » vers les archives ? (Le fichier du script ne sera pas supprimé)',
+  'card.deleteTitle': 'Supprimer définitivement',
+  'card.deleteBtn': 'Supprimer',
+  'card.deleteConfirm': 'Supprimer définitivement « {name} » ? Le fichier du script ({path}) sera aussi supprimé. Cette action est irréversible.',
+  'card.restoreBtn': 'Restaurer',
   'card.noScheme': "Aucun schéma d'exécution — cliquez sur la carte pour le configurer dans les détails",
   'card.manageBtn': 'Gérer',
   'card.manageTip': 'Copier le script dans le répertoire géré de ScriptButler',
@@ -81,7 +91,9 @@ export const fr: Messages = {
 
   'store.notFile': 'Seuls les fichiers peuvent être ajoutés ; répertoire ignoré',
   'store.notFound': "Le fichier n'existe pas ou est inaccessible",
+  'store.notArchived': "Le script n'est pas archivé ; suppression définitive impossible",
   'store.manageFailed': 'Échec de la gestion du script : {err}',
+  'store.deleteFailed': 'Impossible de supprimer le fichier du script : {err}',
 
   'time.justNow': "à l'instant",
   'time.minutesAgo': 'il y a {n} min',

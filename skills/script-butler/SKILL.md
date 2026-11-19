@@ -1,6 +1,6 @@
 ---
 name: script-butler
-description: "Manage and run local scripts in ScriptButler via the sbctl CLI. Invoke when the user asks to add, host/manage, list, search, run, or remove scripts with ScriptButler."
+description: "Manage and run local scripts in ScriptButler via the sbctl CLI. Invoke when the user asks to add, host/manage, list, search, run, archive, restore, or permanently delete scripts with ScriptButler."
 ---
 
 # ScriptButler CLI (sbctl)
@@ -17,7 +17,7 @@ Use the `sbctl` command-line tool to manage scripts stored by the ScriptButler d
 - Always pass `--json` and parse the `{ "ok": true, "data": ... }` envelope.
 - Use absolute paths.
 - Never edit `scripts.json` directly.
-- `remove` only removes the ScriptButler entry. It never deletes the script file or the hosted copy; ask the user before deleting files.
+- `remove` only archives the ScriptButler entry. It never deletes the script file or the hosted copy. `delete` permanently removes an archived entry **and its script file**; only use it after the user explicitly confirms file deletion.
 - If a command returns `ambiguous` (exit code 2), rerun with the full path from the error message.
 - If `sbctl run --json` returns a non-zero `exitCode`, report the script's stdout/stderr; the sbctl process exits with the same code.
 
@@ -51,11 +51,14 @@ Use `--name`, `--scheme-name`, and `--workdir` to control the display name, defa
 ## Inspect
 
 - `sbctl show <name|path> --json` returns the entry, all schemes, the active scheme, `execDir`, and `effectiveCommand`.
-- `sbctl list [--query <keyword>] --json` returns entries in MRU order.
+- `sbctl list [--query <keyword>] --json` returns active entries in MRU order.
+- `sbctl list --archived --json` returns archived entries.
 
-## Remove
+## Archive, restore, and delete
 
-- `sbctl remove <name|path> --json` only removes the entry. Files are untouched.
+- `sbctl remove <name|path> --json` moves the entry to the archive. Files are untouched.
+- `sbctl restore <name|path> --json` brings an archived entry back into the library.
+- `sbctl delete <name|path> --json` permanently deletes an archived entry and its script file (for hosted scripts, only the hosted copy). Ask the user for explicit confirmation first; this cannot be undone.
 
 ## Errors and exit codes
 

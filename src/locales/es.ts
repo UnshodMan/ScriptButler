@@ -12,9 +12,15 @@ export const es: Messages = {
   'action.back': 'Volver',
   'action.addScript': 'Añadir script',
 
+  'archive.tab': 'Archivo',
+  'archive.badge': 'Archivado',
+
   'grid.count': '{n} scripts',
+  'grid.countArchived': '{n} scripts archivados',
   'grid.empty.title': 'Aún no hay scripts',
   'grid.empty.hint': 'Arrastra archivos de script a la ventana o haz clic en «Añadir script» arriba a la derecha',
+  'grid.empty.archivedTitle': 'El archivo está vacío',
+  'grid.empty.archivedHint': 'Los scripts que quites de la biblioteca se guardan aquí; puedes restaurarlos o eliminarlos definitivamente.',
   'grid.pickTitle': 'Añadir script',
 
   'search.placeholder': 'Buscar nombres, directorios o contenido…',
@@ -26,9 +32,13 @@ export const es: Messages = {
 
   'card.lastUsed': 'Último uso: {time}',
   'card.useCount': 'Usado {n} veces',
-  'card.removeTitle': 'Quitar script',
-  'card.removeBtn': 'Quitar',
-  'card.removeConfirm': '¿Quitar «{name}» de la lista? (El archivo no se eliminará)',
+  'card.archiveTitle': 'Archivar script',
+  'card.archiveBtn': 'Archivar',
+  'card.archiveConfirm': '¿Mover «{name}» al archivo? (El archivo del script no se eliminará)',
+  'card.deleteTitle': 'Eliminar permanentemente',
+  'card.deleteBtn': 'Eliminar',
+  'card.deleteConfirm': '¿Eliminar «{name}» permanentemente? También se eliminará el archivo del script: {path}. Esta acción no se puede deshacer.',
+  'card.restoreBtn': 'Restaurar',
   'card.noScheme': 'No hay esquema de ejecución; haz clic en la tarjeta para configurarlo en los detalles',
   'card.manageBtn': 'Gestionar',
   'card.manageTip': 'Copia el script en el directorio gestionado de ScriptButler',
@@ -81,7 +91,9 @@ export const es: Messages = {
 
   'store.notFile': 'Solo se pueden añadir archivos; se ignoró el directorio',
   'store.notFound': 'El archivo no existe o no es accesible',
+  'store.notArchived': 'El script no está archivado; no se puede eliminar permanentemente',
   'store.manageFailed': 'Error al gestionar el script: {err}',
+  'store.deleteFailed': 'No se pudo eliminar el archivo del script: {err}',
 
   'time.justNow': 'justo ahora',
   'time.minutesAgo': 'hace {n} min',

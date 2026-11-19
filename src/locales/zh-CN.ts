@@ -10,9 +10,15 @@ export const zhCN = {
   'action.back': '返回',
   'action.addScript': '添加脚本',
 
+  'archive.tab': '归档',
+  'archive.badge': '已归档',
+
   'grid.count': '{n} 个脚本',
+  'grid.countArchived': '{n} 个已归档脚本',
   'grid.empty.title': '还没有脚本',
   'grid.empty.hint': '将脚本文件拖拽到窗口中，或点击右上角「添加脚本」',
+  'grid.empty.archivedTitle': '归档库为空',
+  'grid.empty.archivedHint': '从脚本库移除的脚本会保存在这里，可随时恢复或永久删除。',
   'grid.pickTitle': '添加脚本',
 
   'search.placeholder': '搜索文件名、目录或内容…',
@@ -24,9 +30,13 @@ export const zhCN = {
 
   'card.lastUsed': '最近使用：{time}',
   'card.useCount': '使用 {n} 次',
-  'card.removeTitle': '移除脚本',
-  'card.removeBtn': '移除',
-  'card.removeConfirm': '从列表中移除「{name}」？（不会删除文件本身）',
+  'card.archiveTitle': '归档脚本',
+  'card.archiveBtn': '归档',
+  'card.archiveConfirm': '将「{name}」移入归档库？脚本文件不会被删除。',
+  'card.deleteTitle': '永久删除',
+  'card.deleteBtn': '删除',
+  'card.deleteConfirm': '永久删除「{name}」？将同时删除脚本文件：{path}。此操作无法撤销。',
+  'card.restoreBtn': '恢复',
   'card.noScheme': '暂无运行方案，点击卡片进入详情配置',
   'card.manageBtn': '托管',
   'card.manageTip': '复制脚本到 ScriptButler 的托管目录',
@@ -79,7 +89,9 @@ export const zhCN = {
 
   'store.notFile': '仅支持添加文件，已忽略目录',
   'store.notFound': '文件不存在或无法访问',
+  'store.notArchived': '脚本尚未归档，无法永久删除',
   'store.manageFailed': '托管失败：{err}',
+  'store.deleteFailed': '删除脚本文件失败：{err}',
 
   'time.justNow': '刚刚',
   'time.minutesAgo': '{n} 分钟前',

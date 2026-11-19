@@ -160,6 +160,7 @@ mod tests {
             managed: None,
             source_path: None,
             work_dir: None,
+            archived: false,
         }
     }
 

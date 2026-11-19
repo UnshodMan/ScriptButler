@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { open } from '@tauri-apps/plugin-dialog'
-import { IconSearch, IconX } from '@tabler/icons-vue'
+import { IconArchive, IconSearch, IconX } from '@tabler/icons-vue'
 import { useScriptsStore } from '../stores/scripts'
 import * as api from '../lib/api'
 import { t } from '../lib/i18n'
@@ -20,14 +20,23 @@ const groups = ref<SearchGroups | null>(null)
 const contentPaths = ref<Set<string>>(new Set())
 const searching = ref(false)
 
+/** 脚本库 / 归档库视图切换 */
+const showArchive = ref(false)
+
+const visible = computed(() =>
+  store.entries.filter((e) => (e.archived === true) === showArchive.value),
+)
+const visiblePaths = computed(() => new Set(visible.value.map((e) => e.path)))
+const archivedCount = computed(() => store.entries.filter((e) => e.archived === true).length)
+
 let searchTimer: number | undefined
 let searchSeq = 0
 
 /** 结果顺序：文件名匹配 → 目录匹配 → 内容匹配，组内保持 MRU 顺序 */
 const results = computed<ScriptEntry[]>(() => {
   const g = groups.value
-  if (!keyword.value || !g) return store.entries
-  const byPath = new Map(store.entries.map((e) => [e.path, e]))
+  if (!keyword.value || !g) return visible.value
+  const byPath = new Map(visible.value.map((e) => [e.path, e]))
   const out: ScriptEntry[] = []
   const push = (path: string) => {
     const entry = byPath.get(path)
@@ -41,7 +50,13 @@ const results = computed<ScriptEntry[]>(() => {
   return out
 })
 
-watch(keyword, async (q) => {
+function toggleArchive() {
+  showArchive.value = !showArchive.value
+  // 当前搜索关键词保留，并在切换后的脚本库 / 归档库重新检索
+  void runSearch(keyword.value)
+}
+
+async function runSearch(q: string) {
   searchSeq += 1
   const seq = searchSeq
   window.clearTimeout(searchTimer)
@@ -57,7 +72,8 @@ watch(keyword, async (q) => {
   const found = await api.searchScripts(q)
   if (seq !== searchSeq) return
   groups.value = found
-  if (!found.pending.length) {
+  const pending = found.pending.filter((path) => visiblePaths.value.has(path))
+  if (!pending.length) {
     searching.value = false
     return
   }
@@ -65,12 +81,14 @@ watch(keyword, async (q) => {
   searching.value = true
   // 输入停顿后再检索内容，避免每次按键都拉起外部进程
   searchTimer = window.setTimeout(async () => {
-    const paths = await api.searchContents(found.pending, q)
+    const paths = await api.searchContents(pending, q)
     if (seq !== searchSeq) return
     contentPaths.value = new Set(paths)
     searching.value = false
   }, 250)
-})
+}
+
+watch(keyword, (q) => void runSearch(q))
 
 onUnmounted(() => window.clearTimeout(searchTimer))
 
@@ -93,10 +111,18 @@ async function pickFiles() {
   <div class="grid-page">
     <header class="grid-header">
       <h1>ScriptButler</h1>
-      <span class="count">{{ t('grid.count', { n: store.entries.length }) }}</span>
+      <span class="count">
+        {{
+          showArchive
+            ? t('grid.countArchived', { n: visible.length })
+            : t('grid.count', { n: visible.length })
+        }}
+      </span>
       <div class="spacer"></div>
       <LangSwitcher />
-      <button class="primary" @click="pickFiles">+ {{ t('action.addScript') }}</button>
+      <button v-if="!showArchive" class="primary" @click="pickFiles">
+        + {{ t('action.addScript') }}
+      </button>
     </header>
 
     <div class="grid-search">
@@ -145,11 +171,31 @@ async function pickFiles() {
         <div v-if="!searching">{{ t('search.empty.hint') }}</div>
       </div>
 
+      <div v-else-if="showArchive" class="empty-state">
+        <div class="big">🗂️</div>
+        <div>{{ t('grid.empty.archivedTitle') }}</div>
+        <div>{{ t('grid.empty.archivedHint') }}</div>
+      </div>
+
       <div v-else class="empty-state">
         <div class="big">📜</div>
         <div>{{ t('grid.empty.title') }}</div>
         <div>{{ t('grid.empty.hint') }}</div>
       </div>
     </div>
+
+    <footer class="grid-footer">
+      <button
+        class="archive-tab"
+        :class="{ active: showArchive }"
+        :title="t('archive.tab')"
+        :aria-pressed="showArchive"
+        @click="toggleArchive"
+      >
+        <IconArchive :size="15" />
+        <span>{{ t('archive.tab') }}</span>
+        <span v-if="archivedCount > 0" class="tab-count">{{ archivedCount }}</span>
+      </button>
+    </footer>
   </div>
 </template>

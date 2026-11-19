@@ -112,6 +112,7 @@ mod tests {
             managed: managed.then_some(true),
             source_path: source.map(str::to_string),
             work_dir: None,
+            archived: false,
         }
     }
 

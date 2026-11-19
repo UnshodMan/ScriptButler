@@ -13,6 +13,7 @@ pub enum CoreError {
     InvalidData(String),
     Io(String),
     ManageFailed(String),
+    DeleteFailed(String),
 }
 
 impl fmt::Display for CoreError {
@@ -23,6 +24,7 @@ impl fmt::Display for CoreError {
             CoreError::InvalidData(detail) => write!(f, "invalid data: {detail}"),
             CoreError::Io(detail) => write!(f, "io error: {detail}"),
             CoreError::ManageFailed(detail) => write!(f, "manage failed: {detail}"),
+            CoreError::DeleteFailed(detail) => write!(f, "delete failed: {detail}"),
         }
     }
 }
@@ -46,6 +48,14 @@ pub struct ManageOutcome {
     pub view: EntryView,
     pub created: bool,
     pub copied_to: String,
+}
+
+/// 永久删除的结果：只有已归档条目才允许删除文件
+#[derive(Debug, PartialEq, Eq)]
+pub enum DeleteOutcome {
+    NotFound,
+    NotArchived,
+    Deleted,
 }
 
 pub fn new_id() -> String {
@@ -133,6 +143,8 @@ pub fn add_entry(
     }
 
     if let Some(existing) = entries.iter_mut().find(|e| e.path == path) {
+        // 重新登记已归档的脚本时自动恢复到脚本库
+        existing.archived = false;
         existing.last_used_at = unix_ms();
         existing.use_count += 1;
         return Ok(AddOutcome {
@@ -154,6 +166,7 @@ pub fn add_entry(
         managed: None,
         source_path: None,
         work_dir: None,
+        archived: false,
     };
     entries.push(entry);
     let view = to_view(entries.last().unwrap());
@@ -231,6 +244,7 @@ pub fn manage_script(
             .work_dir
             .map(str::to_string)
             .or_else(|| dir_of(source_path)),
+        archived: false,
     };
 
     entries.push(entry);
@@ -242,10 +256,45 @@ pub fn manage_script(
     })
 }
 
-pub fn remove_entry(entries: &mut Vec<ScriptEntry>, path: &str) -> bool {
-    let before = entries.len();
-    entries.retain(|e| e.path != path);
-    entries.len() != before
+/// 归档：把条目从脚本库移入归档库，保留条目与脚本文件
+pub fn archive_entry(entries: &mut [ScriptEntry], path: &str) -> bool {
+    if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
+        entry.archived = true;
+        true
+    } else {
+        false
+    }
+}
+
+/// 从归档库恢复到脚本库
+pub fn restore_entry(entries: &mut [ScriptEntry], path: &str) -> bool {
+    if let Some(entry) = entries.iter_mut().find(|e| e.path == path) {
+        entry.archived = false;
+        true
+    } else {
+        false
+    }
+}
+
+/// 永久删除已归档条目及其脚本文件。
+/// 托管条目只删除托管副本（`path`），不会触碰原始文件；文件已不存在时仅删除条目。
+pub fn delete_entry_file(
+    entries: &mut Vec<ScriptEntry>,
+    path: &str,
+) -> Result<DeleteOutcome, CoreError> {
+    let Some(index) = entries.iter().position(|e| e.path == path) else {
+        return Ok(DeleteOutcome::NotFound);
+    };
+    if !entries[index].archived {
+        return Ok(DeleteOutcome::NotArchived);
+    }
+    match std::fs::remove_file(path) {
+        Ok(()) => {}
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => return Err(CoreError::DeleteFailed(e.to_string())),
+    }
+    entries.remove(index);
+    Ok(DeleteOutcome::Deleted)
 }
 
 pub fn mark_used(entries: &mut [ScriptEntry], path: &str) -> bool {
@@ -444,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn remove_only_drops_entry() {
+    fn archive_restore_and_permanent_delete() {
         let dir = temp_dir();
         let file = dir.join("demo.sh");
         fs::write(&file, "echo hi\n").unwrap();
@@ -452,9 +501,55 @@ mod tests {
 
         let mut entries = Vec::new();
         add_entry(&mut entries, &path, "Default").unwrap();
-        assert!(remove_entry(&mut entries, &path));
-        assert!(entries.is_empty());
+
+        // 未归档的条目不允许直接删除文件
+        assert_eq!(
+            delete_entry_file(&mut entries, &path).unwrap(),
+            DeleteOutcome::NotArchived
+        );
         assert!(file.exists());
+
+        // 归档只改状态，文件仍在
+        assert!(archive_entry(&mut entries, &path));
+        assert!(entries[0].is_archived());
+        assert!(file.exists());
+
+        // 恢复后重新回到脚本库
+        assert!(restore_entry(&mut entries, &path));
+        assert!(!entries[0].is_archived());
+
+        // 归档后再次删除才真正移除条目与文件
+        assert!(archive_entry(&mut entries, &path));
+        assert_eq!(
+            delete_entry_file(&mut entries, &path).unwrap(),
+            DeleteOutcome::Deleted
+        );
+        assert!(entries.is_empty());
+        assert!(!file.exists());
+        assert_eq!(
+            delete_entry_file(&mut entries, &path).unwrap(),
+            DeleteOutcome::NotFound
+        );
+
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn adding_an_archived_script_restores_it() {
+        let dir = temp_dir();
+        let file = dir.join("demo.py");
+        fs::write(&file, "print('hi')\n").unwrap();
+        let path = file.to_string_lossy().to_string();
+
+        let mut entries = Vec::new();
+        add_entry(&mut entries, &path, "Default").unwrap();
+        archive_entry(&mut entries, &path);
+        assert!(entries[0].is_archived());
+
+        let again = add_entry(&mut entries, &path, "Default").unwrap();
+        assert!(!again.created);
+        assert!(!entries[0].is_archived());
+        assert_eq!(entries.len(), 1);
 
         fs::remove_dir_all(&dir).unwrap();
     }

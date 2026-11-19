@@ -8,7 +8,7 @@ use std::thread;
 use serde_json::json;
 use scriptbutler_core::exec::{build_run_command, quote_arg, shell_command, to_view};
 use scriptbutler_core::models::{EntryView, RunScheme, ScriptEntry};
-use scriptbutler_core::ops::{self, CoreError, ManageOptions};
+use scriptbutler_core::ops::{self, CoreError, DeleteOutcome, ManageOptions};
 use scriptbutler_core::search;
 use scriptbutler_core::store::{self, StoreError};
 use scriptbutler_core::unix_ms;
@@ -23,8 +23,10 @@ pub fn run(command: Commands, json: bool) -> Result<i32, CliError> {
     match command {
         Commands::Add(args) => cmd_add(args, json),
         Commands::Remove(args) => cmd_remove(args, json),
+        Commands::Restore(args) => cmd_restore(args, json),
+        Commands::Delete(args) => cmd_delete(args, json),
         Commands::Manage(args) => cmd_manage(args, json),
-        Commands::List { query } => cmd_list(query, json),
+        Commands::List { query, archived } => cmd_list(query, archived, json),
         Commands::Show(args) => cmd_show(args, json),
         Commands::Search { keyword, content } => cmd_search(&keyword, content, json),
         Commands::Run(args) => cmd_run(args, json),
@@ -75,6 +77,7 @@ fn map_core(err: CoreError) -> CliError {
         CoreError::InvalidData(detail) => CliError::InvalidData(detail),
         CoreError::Io(detail) => CliError::Io(detail),
         CoreError::ManageFailed(detail) => CliError::ManageFailed(detail),
+        CoreError::DeleteFailed(detail) => CliError::DeleteFailed(detail),
     }
 }
 
@@ -186,27 +189,83 @@ fn cmd_remove(args: RefArgs, json: bool) -> Result<i32, CliError> {
     let mut store = Store::load()?;
     let idx = resolve::resolve_index(&store.entries, &args.reference)?;
     let path = store.entries[idx].path.clone();
-    ops::remove_entry(&mut store.entries, &path);
+    ops::archive_entry(&mut store.entries, &path);
     store.save()?;
 
     if json {
         output::print_json(json!({
             "ok": true,
-            "data": { "path": path, "removed": true }
+            "data": { "path": path, "archived": true }
         }));
     } else {
-        println!("Removed {path}");
+        println!("Archived {path}");
     }
     Ok(0)
 }
 
-fn cmd_list(query: Option<String>, json: bool) -> Result<i32, CliError> {
+fn cmd_restore(args: RefArgs, json: bool) -> Result<i32, CliError> {
+    let mut store = Store::load()?;
+    let idx = resolve::resolve_index(&store.entries, &args.reference)?;
+    if !store.entries[idx].is_archived() {
+        return Err(CliError::NotArchived(format!(
+            "script '{}' is not archived",
+            store.entries[idx].name
+        )));
+    }
+    let path = store.entries[idx].path.clone();
+    ops::restore_entry(&mut store.entries, &path);
+    store.save()?;
+
+    if json {
+        output::print_json(json!({
+            "ok": true,
+            "data": { "path": path, "archived": false }
+        }));
+    } else {
+        println!("Restored {path}");
+    }
+    Ok(0)
+}
+
+fn cmd_delete(args: RefArgs, json: bool) -> Result<i32, CliError> {
+    let mut store = Store::load()?;
+    let idx = resolve::resolve_index(&store.entries, &args.reference)?;
+    let path = store.entries[idx].path.clone();
+    match ops::delete_entry_file(&mut store.entries, &path).map_err(map_core)? {
+        DeleteOutcome::Deleted => store.save()?,
+        DeleteOutcome::NotFound => {
+            return Err(CliError::NotFound(format!(
+                "script '{reference}' was not found",
+                reference = args.reference
+            )));
+        }
+        DeleteOutcome::NotArchived => {
+            return Err(CliError::NotArchived(format!(
+                "script '{}' is not archived; run remove first",
+                store.entries[idx].name
+            )));
+        }
+    }
+
+    if json {
+        output::print_json(json!({
+            "ok": true,
+            "data": { "path": path, "deleted": true }
+        }));
+    } else {
+        println!("Deleted {path}");
+    }
+    Ok(0)
+}
+
+fn cmd_list(query: Option<String>, archived: bool, json: bool) -> Result<i32, CliError> {
     let store = Store::load()?;
     let query = query
         .map(|q| q.trim().to_string())
         .filter(|q| !q.is_empty());
     let views: Vec<EntryView> = ops::sorted_views(&store.entries)
         .into_iter()
+        .filter(|view| view.entry.is_archived() == archived)
         .filter(|view| {
             query
                 .as_deref()
@@ -250,7 +309,10 @@ fn cmd_show(args: RefArgs, json: bool) -> Result<i32, CliError> {
 
 fn cmd_search(keyword: &str, content: bool, json: bool) -> Result<i32, CliError> {
     let store = Store::load()?;
-    let sorted = ops::sorted_refs(&store.entries);
+    let sorted: Vec<&ScriptEntry> = ops::sorted_refs(&store.entries)
+        .into_iter()
+        .filter(|entry| !entry.is_archived())
+        .collect();
     let groups = search::group(&sorted, keyword);
     let by_path: HashMap<&str, &ScriptEntry> =
         sorted.iter().map(|entry| (entry.path.as_str(), *entry)).collect();

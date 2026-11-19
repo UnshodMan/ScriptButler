@@ -12,9 +12,15 @@ export const de: Messages = {
   'action.back': 'Zurück',
   'action.addScript': 'Skript hinzufügen',
 
+  'archive.tab': 'Archiv',
+  'archive.badge': 'Archiviert',
+
   'grid.count': '{n} Skripte',
+  'grid.countArchived': '{n} archivierte Skripte',
   'grid.empty.title': 'Noch keine Skripte',
   'grid.empty.hint': 'Ziehe Skriptdateien ins Fenster oder klicke oben rechts auf „Skript hinzufügen“',
+  'grid.empty.archivedTitle': 'Das Archiv ist leer',
+  'grid.empty.archivedHint': 'Aus der Bibliothek entfernte Skripte werden hier aufbewahrt und können wiederhergestellt oder endgültig gelöscht werden.',
   'grid.pickTitle': 'Skript hinzufügen',
 
   'search.placeholder': 'Dateiname, Verzeichnis oder Inhalt suchen…',
@@ -26,9 +32,13 @@ export const de: Messages = {
 
   'card.lastUsed': 'Zuletzt verwendet: {time}',
   'card.useCount': '{n}-mal verwendet',
-  'card.removeTitle': 'Skript entfernen',
-  'card.removeBtn': 'Entfernen',
-  'card.removeConfirm': '„{name}“ aus der Liste entfernen? (Die Datei selbst wird nicht gelöscht)',
+  'card.archiveTitle': 'Skript archivieren',
+  'card.archiveBtn': 'Archivieren',
+  'card.archiveConfirm': '„{name}“ ins Archiv verschieben? (Die Skriptdatei wird nicht gelöscht)',
+  'card.deleteTitle': 'Endgültig löschen',
+  'card.deleteBtn': 'Löschen',
+  'card.deleteConfirm': '„{name}“ endgültig löschen? Die Skriptdatei ({path}) wird ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden.',
+  'card.restoreBtn': 'Wiederherstellen',
   'card.noScheme': 'Noch kein Ausführungsschema – klicke auf die Karte, um es in den Details zu konfigurieren',
   'card.manageBtn': 'Verwalten',
   'card.manageTip': 'Skript in das verwaltete Verzeichnis von ScriptButler kopieren',
@@ -81,7 +91,9 @@ export const de: Messages = {
 
   'store.notFile': 'Es können nur Dateien hinzugefügt werden; Verzeichnis wurde ignoriert',
   'store.notFound': 'Datei existiert nicht oder ist nicht zugreifbar',
+  'store.notArchived': 'Das Skript ist nicht archiviert und kann nicht endgültig gelöscht werden',
   'store.manageFailed': 'Skript konnte nicht verwaltet werden: {err}',
+  'store.deleteFailed': 'Skriptdatei konnte nicht gelöscht werden: {err}',
 
   'time.justNow': 'gerade eben',
   'time.minutesAgo': 'vor {n} Min.',

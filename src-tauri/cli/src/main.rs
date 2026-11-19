@@ -22,8 +22,12 @@ struct Cli {
 pub(crate) enum Commands {
     /// Register a script in place
     Add(AddArgs),
-    /// Remove a script entry (never deletes files)
+    /// Move a script entry to the archive (never deletes files)
     Remove(RefArgs),
+    /// Restore an archived script entry
+    Restore(RefArgs),
+    /// Permanently delete an archived entry and its script file
+    Delete(RefArgs),
     /// Copy a script into ScriptButler's managed directory
     Manage(ManageArgs),
     /// List scripts in MRU order
@@ -31,6 +35,9 @@ pub(crate) enum Commands {
         /// Filter by file name or execution directory
         #[arg(long)]
         query: Option<String>,
+        /// List archived entries instead of active ones
+        #[arg(long)]
+        archived: bool,
     },
     /// Show a script entry
     Show(RefArgs),

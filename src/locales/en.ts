@@ -12,9 +12,15 @@ export const en: Messages = {
   'action.back': 'Back',
   'action.addScript': 'Add Script',
 
+  'archive.tab': 'Archive',
+  'archive.badge': 'Archived',
+
   'grid.count': '{n} scripts',
+  'grid.countArchived': '{n} archived scripts',
   'grid.empty.title': 'No scripts yet',
   'grid.empty.hint': 'Drag script files into the window, or click "Add Script" in the top right',
+  'grid.empty.archivedTitle': 'The archive is empty',
+  'grid.empty.archivedHint': 'Scripts removed from the library are kept here; you can restore or permanently delete them.',
   'grid.pickTitle': 'Add Script',
 
   'search.placeholder': 'Search filenames, directories, or contents…',
@@ -26,9 +32,13 @@ export const en: Messages = {
 
   'card.lastUsed': 'Last used: {time}',
   'card.useCount': 'Used {n} times',
-  'card.removeTitle': 'Remove Script',
-  'card.removeBtn': 'Remove',
-  'card.removeConfirm': 'Remove "{name}" from the list? (The file itself will not be deleted)',
+  'card.archiveTitle': 'Archive Script',
+  'card.archiveBtn': 'Archive',
+  'card.archiveConfirm': 'Move "{name}" to the archive? (The script file will not be deleted)',
+  'card.deleteTitle': 'Delete Permanently',
+  'card.deleteBtn': 'Delete',
+  'card.deleteConfirm': 'Permanently delete "{name}"? The script file will also be deleted: {path}. This cannot be undone.',
+  'card.restoreBtn': 'Restore',
   'card.noScheme': 'No run scheme yet — click the card to open details and configure one',
   'card.manageBtn': 'Manage',
   'card.manageTip': "Copy the script into ScriptButler's managed directory",
@@ -81,7 +91,9 @@ export const en: Messages = {
 
   'store.notFile': 'Only files can be added; directory ignored',
   'store.notFound': 'File does not exist or is inaccessible',
+  'store.notArchived': 'The script is not archived, so it cannot be deleted permanently',
   'store.manageFailed': 'Failed to manage script: {err}',
+  'store.deleteFailed': 'Failed to delete the script file: {err}',
 
   'time.justNow': 'just now',
   'time.minutesAgo': '{n} min ago',

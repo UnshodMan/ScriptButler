@@ -15,7 +15,9 @@ pub struct ListResponse {
 pub enum ApiError {
     NotFound,
     NotFile,
+    NotArchived,
     ManageFailed { detail: String },
+    DeleteFailed { detail: String },
     ReadFailed { detail: String },
     WriteFailed { detail: String },
     SpawnFailed { detail: String },
@@ -27,6 +29,7 @@ impl From<CoreError> for ApiError {
             CoreError::NotFound => ApiError::NotFound,
             CoreError::NotFile => ApiError::NotFile,
             CoreError::ManageFailed(detail) => ApiError::ManageFailed { detail },
+            CoreError::DeleteFailed(detail) => ApiError::DeleteFailed { detail },
             CoreError::InvalidData(detail) | CoreError::Io(detail) => {
                 ApiError::ReadFailed { detail }
             }

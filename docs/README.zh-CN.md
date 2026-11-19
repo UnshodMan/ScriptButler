@@ -7,15 +7,16 @@
 - **卡片式主界面**：脚本以卡片单列纵向排列（默认窗口宽度刚好容纳一张卡片），卡片更高更饱满，显示语言标签、文件名、执行目录、最近使用时间与使用次数。
 - **快捷运行**：卡片右侧带有「运行」按钮，一键以当前激活方案运行脚本并进入详情页查看输出；光标悬停在按钮上时显示实际执行的完整命令。
 - **拖拽导入**：将脚本文件直接拖入窗口即可新增卡片（也支持右上角「添加脚本」文件选择器）。重复拖入同一文件会将其置顶而不重复添加。
-- **搜索筛选**：主界面顶部搜索框按「文件名 → 目录 → 内容」的优先级展示结果；名称与目录由 Rust 在已排序条目上实时分组，内容检索在输入停顿后按需扫描（优先调用系统的 ripgrep / grep，不可用时回退为 Rust 侧逐文件读取），无需预先建立索引。
+- **搜索筛选**：主界面顶部搜索框在当前视图（脚本库或归档库）内按「文件名 → 目录 → 内容」的优先级展示结果；名称与目录由 Rust 在已排序条目上实时分组，内容检索在输入停顿后按需扫描（优先调用系统的 ripgrep / grep，不可用时回退为 Rust 侧逐文件读取），无需预先建立索引。
 - **脚本托管**：卡片上的「托管」按钮会将脚本复制到应用数据目录下的 `scripts/`（具体路径由 Tauri 的 `appDataDir` 按平台解析），副本以时间戳命名并保留原扩展名。托管后「托管」按钮图标变为 ❒ 并染橙、不可再点击（悬停提示「已托管」）；卡片只展示实际执行目录，且仅当方案启用「先切换到脚本所在目录再运行」时显示（托管脚本为可配置的执行目录，普通脚本为脚本所在目录）。原脚本名、目录信息与运行方案均被保留，执行目录可在详情页随时更改。
+- **归档库**：底栏可在脚本库与归档库之间切换。从脚本库移除卡片会将条目移入归档库，脚本文件保持不变。归档卡片可恢复到脚本库，也可永久删除；永久删除会同时移除条目与脚本文件（托管脚本只删除托管副本，不会触碰原始文件）。
 - **MRU 排序**：卡片默认按「最近使用 → 使用次数 → 名称」综合排序。
 - **语法高亮编辑**：点击卡片进入详情页，基于 CodeMirror 6 提供高亮与关键词补全，按扩展名自动识别语言（Python / JavaScript / TypeScript / Shell / JSON / YAML / Markdown / HTML / CSS 等）。支持编辑并通过「保存」按钮或 `Ctrl/Cmd + S` 写回文件。
 - **自定义运行方案**：详情页顶部提供运行按钮与方案下拉框。每个脚本独立维护一组运行命令方案，支持新建 / 编辑 / 删除；命令模板支持 `{file}` 占位符（缺省时自动在末尾追加脚本路径）。方案内含「先切换到脚本所在目录再运行」开关（默认开启），开启时实际命令形如 `cd '<脚本目录>' && <命令>`，避免脚本依赖当前工作目录时执行出错。方案变更即时自动保存，下次打开可直接下拉选择；首次打开会按语言自动生成默认方案。运行栏还提供「参数」输入框：输入内容仅追加到本次执行的命令末尾，不会写回方案；运行按钮下方会展示当前方案实际执行的完整命令（含临时参数）。
 - **运行输出面板**：实时流式展示 stdout / stderr（stderr 高亮为红色）、退出码，支持中途停止与清空。
 - **持久化**：脚本条目与运行方案保存在应用数据目录的 `scripts.json` 中，重启后恢复。
 - **国际化**：内置 9 种界面语言（简体中文 / 繁體中文 / English / 日本語 / 한국어 / Español / Français / Deutsch / Русский），默认跟随系统语言自动选择，可在主界面与详情页右上角随时切换，选择会被记住。
-- **Agent 集成**：随桌面应用一起分发 `sbctl` CLI，Agent 与终端可使用稳定的 `--json` 输出添加、管理、列出、搜索、运行与移除脚本，`sbctl skill --install <dir>` 可安装开箱即用的 Agent Skill。详见 [Agent 集成（CLI + Skill）](#agent-集成-cli--skill)。
+- **Agent 集成**：随桌面应用一起分发 `sbctl` CLI，Agent 与终端可使用稳定的 `--json` 输出添加、管理、列出、搜索、运行、归档、恢复与永久删除脚本，`sbctl skill --install <dir>` 可安装开箱即用的 Agent Skill。详见 [Agent 集成（CLI + Skill）](#agent-集成-cli--skill)。
 
 ## Agent 集成（CLI + Skill）
 
@@ -48,10 +49,12 @@ Windows 下将 `sbctl-windows-x86_64.exe` 重命名为 `sbctl.exe` 后运行 `sb
 
 | 命令                                                                                          | 说明                         |
 | ------------------------------------------------------------------------------------------- | -------------------------- |
-| `sbctl add <path> [--name N] [--command TPL] [--scheme-name N] [--json]`                    | 就地注册脚本；重复添加仅更新 MRU         |
+| `sbctl add <path> [--name N] [--command TPL] [--scheme-name N] [--json]`                    | 就地注册脚本；重复添加仅更新 MRU（并恢复已归档条目） |
 | `sbctl manage <path> [--name N] [--workdir DIR] [--command TPL] [--scheme-name N] [--json]` | 将脚本复制到托管目录；对已注册与未注册文件均可用   |
-| `sbctl remove <name\|path> [--json]`                                                        | 移除条目；绝不删除文件                |
-| `sbctl list [--query KW] [--json]`                                                          | 按 MRU 顺序列出条目               |
+| `sbctl remove <name\|path> [--json]`                                                        | 将条目移入归档库；绝不删除文件              |
+| `sbctl restore <name\|path> [--json]`                                                       | 将已归档条目恢复到脚本库                  |
+| `sbctl delete <name\|path> [--json]`                                                        | 永久删除已归档条目及其脚本文件               |
+| `sbctl list [--query KW] [--archived] [--json]`                                             | 按 MRU 顺序列出条目（默认脚本库，`--archived` 查看归档库） |
 | `sbctl show <name\|path> [--json]`                                                          | 展示条目、其方案与生效命令              |
 | `sbctl search <keyword> [--content] [--json]`                                               | 搜索名称、目录，可选搜索内容             |
 | `sbctl run <name\|path> [args...] [--scheme ID\|NAME] [--json]`                              | 运行激活或指定的方案，可追加临时参数       |
@@ -59,7 +62,7 @@ Windows 下将 `sbctl-windows-x86_64.exe` 重命名为 `sbctl.exe` 后运行 `sb
 | `sbctl env add\|remove\|status [--system] [--json]`                                         | 管理 PATH                    |
 | `sbctl skill [--install <skills-root>]`                                                     | 打印或安装 Agent Skill          |
 
-`<name|path>` 依次按绝对路径、托管脚本的源路径、文件名（不区分大小写）解析。名称重复时返回 `ambiguous` 错误并附候选路径。尾部参数会按平台加引号后追加到解析出的命令末尾；以 `-` 开头的参数需放在 `--` 之后，例如 `sbctl run demo -- --verbose`。
+`<name|path>` 依次按绝对路径、托管脚本的源路径、文件名（不区分大小写）解析。名称重复时返回 `ambiguous` 错误并附候选路径。尾部参数会按平台加引号后追加到解析出的命令末尾；以 `-` 开头的参数需放在 `--` 之后，例如 `sbctl run demo -- --verbose`。`remove` 仅归档条目、不触碰文件；`delete` 只接受已归档条目，并同时删除条目与文件。`list` 与 `search` 默认只覆盖脚本库（`list --archived` 查看归档库）。
 
 ### JSON 输出与退出码
 
@@ -186,7 +189,7 @@ npm run version:bump -- 0.2.3   # 指定具体版本
 
 ## 数据存储
 
-脚本条目与运行方案由共享的 Rust core 读写应用数据目录下的 `scripts.json`（格式为 `{ "entries": [...] }`）。`sbctl` CLI 使用相同路径；可通过 `SCRIPTBUTLER_DATA_DIR` 覆盖 CLI 的数据目录（便于测试）：
+脚本条目与运行方案由共享的 Rust core 读写应用数据目录下的 `scripts.json`（格式为 `{ "entries": [...] }`）。已归档条目仍保存在同一列表中，并标记 `"archived": true`。`sbctl` CLI 使用相同路径；可通过 `SCRIPTBUTLER_DATA_DIR` 覆盖 CLI 的数据目录（便于测试）：
 
 - Linux: `~/.local/share/com.scriptbutler.app/scripts.json`
 - macOS: `~/Library/Application Support/com.scriptbutler.app/scripts.json`

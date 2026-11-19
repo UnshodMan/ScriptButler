@@ -12,9 +12,15 @@ export const ko: Messages = {
   'action.back': '뒤로',
   'action.addScript': '스크립트 추가',
 
+  'archive.tab': '보관함',
+  'archive.badge': '보관됨',
+
   'grid.count': '스크립트 {n}개',
+  'grid.countArchived': '보관된 스크립트 {n}개',
   'grid.empty.title': '스크립트가 없습니다',
   'grid.empty.hint': '스크립트 파일을 창으로 드래그하거나 오른쪽 위의 "스크립트 추가"를 클릭하세요',
+  'grid.empty.archivedTitle': '보관함이 비어 있습니다',
+  'grid.empty.archivedHint': '스크립트 목록에서 제거한 스크립트가 여기에 보관되며 언제든 복원하거나 완전히 삭제할 수 있습니다.',
   'grid.pickTitle': '스크립트 추가',
 
   'search.placeholder': '파일명, 디렉터리 또는 내용 검색…',
@@ -26,9 +32,13 @@ export const ko: Messages = {
 
   'card.lastUsed': '최근 사용: {time}',
   'card.useCount': '{n}회 사용',
-  'card.removeTitle': '스크립트 제거',
-  'card.removeBtn': '제거',
-  'card.removeConfirm': '"{name}"을(를) 목록에서 제거할까요? (파일 자체는 삭제되지 않습니다)',
+  'card.archiveTitle': '스크립트 보관',
+  'card.archiveBtn': '보관',
+  'card.archiveConfirm': '"{name}"을(를) 보관함으로 이동할까요? (스크립트 파일은 삭제되지 않습니다)',
+  'card.deleteTitle': '영구 삭제',
+  'card.deleteBtn': '삭제',
+  'card.deleteConfirm': '"{name}"을(를) 영구 삭제할까요? 스크립트 파일({path})도 함께 삭제되며 되돌릴 수 없습니다.',
+  'card.restoreBtn': '복원',
   'card.noScheme': '실행 스킴이 없습니다. 카드를 클릭하여 세부 설정에서 구성하세요',
   'card.manageBtn': '관리',
   'card.manageTip': '스크립트를 ScriptButler 관리 디렉터리에 복사',
@@ -81,7 +91,9 @@ export const ko: Messages = {
 
   'store.notFile': '파일만 추가할 수 있습니다. 디렉터리는 무시되었습니다',
   'store.notFound': '파일이 없거나 접근할 수 없습니다',
+  'store.notArchived': '스크립트가 보관 상태가 아니어서 영구 삭제할 수 없습니다',
   'store.manageFailed': '관리 실패: {err}',
+  'store.deleteFailed': '스크립트 파일 삭제 실패: {err}',
 
   'time.justNow': '방금',
   'time.minutesAgo': '{n}분 전',

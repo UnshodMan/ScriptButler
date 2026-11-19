@@ -12,9 +12,15 @@ export const ja: Messages = {
   'action.back': '戻る',
   'action.addScript': 'スクリプトを追加',
 
+  'archive.tab': 'アーカイブ',
+  'archive.badge': 'アーカイブ済み',
+
   'grid.count': 'スクリプト {n} 件',
+  'grid.countArchived': 'アーカイブ済みスクリプト {n} 件',
   'grid.empty.title': 'スクリプトがありません',
   'grid.empty.hint': 'スクリプトファイルをウィンドウにドラッグするか、右上の「スクリプトを追加」をクリックしてください',
+  'grid.empty.archivedTitle': 'アーカイブは空です',
+  'grid.empty.archivedHint': 'スクリプト一覧から削除したスクリプトはここに保存され、復元または完全削除できます。',
   'grid.pickTitle': 'スクリプトを追加',
 
   'search.placeholder': 'ファイル名・ディレクトリ・内容を検索…',
@@ -26,9 +32,13 @@ export const ja: Messages = {
 
   'card.lastUsed': '最終使用：{time}',
   'card.useCount': '{n} 回使用',
-  'card.removeTitle': 'スクリプトを削除',
-  'card.removeBtn': '削除',
-  'card.removeConfirm': '「{name}」を一覧から削除しますか？（ファイル自体は削除されません）',
+  'card.archiveTitle': 'スクリプトをアーカイブ',
+  'card.archiveBtn': 'アーカイブ',
+  'card.archiveConfirm': '「{name}」をアーカイブに移動しますか？（スクリプトファイルは削除されません）',
+  'card.deleteTitle': '完全削除',
+  'card.deleteBtn': '削除',
+  'card.deleteConfirm': '「{name}」を完全に削除しますか？スクリプトファイル（{path}）も削除されます。この操作は元に戻せません。',
+  'card.restoreBtn': '復元',
   'card.noScheme': '実行スキームがありません。カードをクリックして詳細で設定してください',
   'card.manageBtn': '管理',
   'card.manageTip': 'スクリプトを ScriptButler の管理ディレクトリにコピー',
@@ -81,7 +91,9 @@ export const ja: Messages = {
 
   'store.notFile': 'ファイルのみ追加できます。ディレクトリは無視されました',
   'store.notFound': 'ファイルが存在しないか、アクセスできません',
+  'store.notArchived': 'スクリプトはアーカイブされていないため、完全削除できません',
   'store.manageFailed': '管理に失敗しました：{err}',
+  'store.deleteFailed': 'スクリプトファイルの削除に失敗しました：{err}',
 
   'time.justNow': 'たった今',
   'time.minutesAgo': '{n} 分前',

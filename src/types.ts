@@ -25,6 +25,8 @@ export interface ScriptEntry {
   sourcePath?: string
   /** 托管脚本的执行目录，可随时修改；默认取原始脚本所在目录 */
   workDir?: string
+  /** 已归档：从脚本库移入归档库，可恢复或永久删除 */
+  archived?: boolean
   /** 解析后的执行目录，由 Rust 计算 */
   execDir: string | null
   /** 当前激活方案实际执行的完整命令，由 Rust 计算 */
@@ -58,7 +60,9 @@ export interface RunPayload extends RunEvent {
 export type ApiErrorCode =
   | 'not_found'
   | 'not_file'
+  | 'not_archived'
   | 'manage_failed'
+  | 'delete_failed'
   | 'read_failed'
   | 'write_failed'
   | 'spawn_failed'
